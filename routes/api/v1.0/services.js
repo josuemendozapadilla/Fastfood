@@ -5,7 +5,9 @@ var fs = require('fs');
 //var _ = require("underscore");
 var Home = require("../../../database/collections/homes");
 var Img = require("../../../database/collections/img");
-
+var Menus = require("../../../database/collections/menus");
+var Orden = require("../../../database/collections/orden");
+var Restaurant = require("../../../database/collections/restaurant");
 var jwt = require("jsonwebtoken");
 
 
@@ -293,4 +295,94 @@ router.put(/home\/[a-z0-9]{1,}$/, verifytoken,(req, res) => {
       return;
   });
 });
+router.post("/restaurant", (req, res) => {
+  //Ejemplo de validacion
+  if (req.body.name == "" && req.body.email == "") {
+    res.status(400).json({
+      "msn" : "formato incorrecto"
+    });
+    return;
+  }
+  var restaurant = {
+    nombre : req.body.nombre,
+    nit : req.body.nit,
+    propiedad : req.body.propiedad,
+    calle : req.body.calle,
+    telefono : req.body.telefono,
+    lat : req.body.lat,
+    lon : req.body.lon,
+    fechaderegistro : req.body.lon,
+    fotolugar : req.body.foto
+  };
+  var restaurantData = new Restaurant(restaurant);
+
+  restaurantData.save().then( (rr) => {
+    //content-type
+    res.status(200).json({
+      "id" : rr._id,
+      "msn" : "usuario Registrado con exito "
+    });
+  });
+});
+router.get("/restaurant", (req, res, next) => {
+  var params = req.query;
+  console.log(params);
+  var propiedad = params.propiedad;
+  var over = params.over;
+
+  if (propiedad == undefined && over == undefined) {
+    // filtra los datos que tengan en sus atributos lat y lon null;
+    Home.find({lat: {$ne: null}, lon: {$ne: null}}).exec( (error, docs) => {
+      res.status(200).json(
+        {
+          info: docs
+        }
+      );
+    })
+    return;
+  }
+  if (over == "equals") {
+    console.log("--------->>>>>>>")
+    Restaurant.find({propiedad:propiedad, lat: {$ne: null}, lon: {$ne: null}}).exec( (error, docs) => {
+      res.status(200).json(
+        {
+          info: docs
+        }
+      );
+    })
+    return;
+  } else if ( over == "true") {
+    Restaurant.find({propiedad: {$gt:propiedad}, lat: {$ne: null}, lon: {$ne: null}}).exec( (error, docs) => {
+      res.status(200).json(
+        {
+          info: docs
+        }
+      );
+    })
+  } else if (over == "false") {
+    Restaurant.find({propiedad: {$lt:propiedad}, lat: {$ne: null}, lon: {$ne: null}}).exec( (error, docs) => {
+      res.status(200).json(
+        {
+          info: docs
+        }
+      );
+    })
+  }
+});
+// Read only one user
+router.get(/restaurant\/[a-z0-9]{1,}$/, (req, res) => {
+  var url = req.url;
+  var id = url.split("/")[2];
+  Restaurant.findOne({_id : id}).exec( (error, docs) => {
+    if (docs != null) {
+        res.status(200).json(docs);
+        return;
+    }
+
+    res.status(200).json({
+      "msn" : "No existe el recurso "
+    });
+  })
+});
+
 module.exports = router;
