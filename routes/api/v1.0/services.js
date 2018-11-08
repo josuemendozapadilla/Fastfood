@@ -57,14 +57,14 @@ function verifytoken (req, res, next) {
   const header = req.headers["authorization"];
   if (header  == undefined) {
       res.status(403).json({
-        msn: "No autotizado"
+        msn: "No autorizado"
       })
   } else {
       req.token = header.split(" ")[1];
       jwt.verify(req.token, "secretkey123", (err, authData) => {
         if (err) {
           res.status(403).json({
-            msn: "No autotizado"
+            msn: "No autorizado"
           })
         } else {
           next();
@@ -295,6 +295,7 @@ router.put(/home\/[a-z0-9]{1,}$/, verifytoken,(req, res) => {
       return;
   });
 });
+/*RESTAURANT*/
 router.post("/restaurant", (req, res) => {
   //Ejemplo de validacion
   if (req.body.name == "" && req.body.email == "") {
@@ -311,7 +312,7 @@ router.post("/restaurant", (req, res) => {
     telefono : req.body.telefono,
     lat : req.body.lat,
     lon : req.body.lon,
-    fechaderegistro : req.body.lon,
+    fechaderegistro : req.body.fechaderegistro,
     fotolugar : req.body.foto
   };
   var restaurantData = new Restaurant(restaurant);
@@ -384,5 +385,50 @@ router.get(/restaurant\/[a-z0-9]{1,}$/, (req, res) => {
     });
   })
 });
+//elimina un restaurant
+router.delete(/restaurant\/[a-z0-9]{1,}$/, verifytoken, (req, res) => {
+  var url = req.url;
+  var id = url.split("/")[2];
+  Restaurant.find({_id : id}).remove().exec( (err, docs) => {
+      res.status(200).json(docs);
+  });
+});
+//Actualiza los datos del restaurant
+router.put(/restaurant\/[a-z0-9]{1,}$/, verifytoken,(req, res) => {
+  var url = req.url;
+  var id = url.split("/")[2];
+  var keys  = Object.keys(req.body);
+  var oficialkeys = ['nombre', 'nit', 'propiedad', 'calle', 'telefono', 'lat', 'lon', 'fechaderegistro', 'fotolugar'];
+  var result = _.difference(oficialkeys, keys);
+  if (result.length > 0) {
+    res.status(400).json({
+      "msn" : "Existe un error en el formato de envio puede hacer uso del metodo patch si desea editar solo un fragmentode la informacion"
+    });
+    return;
+  }
+
+  var restaurant = {
+    nombre : req.body.nombre,
+    nit : req.body.nit,
+    propiedad : req.body.propiedad,
+    calle : req.body.calle,
+    telefono : req.body.telefono,
+    lat : req.body.lat,
+    lon : req.body.lon,
+    fechaderegistro : req.body.fechaderegistro,
+    fotolugar : req.body.foto
+  };
+  Restaurant.findOneAndUpdate({_id: id}, user, (err, params) => {
+      if(err) {
+        res.status(500).json({
+          "msn": "Error no se pudo actualizar los datos"
+        });
+        return;
+      }
+      res.status(200).json(params);
+      return;
+  });
+});
+
 
 module.exports = router;
