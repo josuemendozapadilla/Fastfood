@@ -298,7 +298,7 @@ router.put(/home\/[a-z0-9]{1,}$/, verifytoken,(req, res) => {
 /*RESTAURANT*/
 router.post("/restaurant", (req, res) => {
   //Ejemplo de validacion
-  if (req.body.name == "" && req.body.email == "") {
+  if (req.body.nombre == "" && req.body.nit == "") {
     res.status(400).json({
       "msn" : "formato incorrecto"
     });
@@ -333,7 +333,7 @@ router.get("/restaurant", (req, res, next) => {
 
   if (propiedad == undefined && over == undefined) {
     // filtra los datos que tengan en sus atributos lat y lon null;
-    Home.find({lat: {$ne: null}, lon: {$ne: null}}).exec( (error, docs) => {
+    Restaurant.find({lat: {$ne: null}, lon: {$ne: null}}).exec( (error, docs) => {
       res.status(200).json(
         {
           info: docs
@@ -440,6 +440,153 @@ router.put(/restaurant\/[a-z0-9]{1,}$/, (req, res) => {
 
   };
   Restaurant.findOneAndUpdate({_id: id}, restaurant, (err, params) => {
+      if(err) {
+        res.status(500).json({
+          "msn": "Error no se pudo actualizar los datos"
+        });
+        return;
+      }
+      res.status(200).json(params);
+      return;
+  });
+});
+router.post("/menus", (req, res) => {
+  //Ejemplo de validacion
+  if (req.body.nombre == "" && req.body.precio == "") {
+    res.status(400).json({
+      "msn" : "formato incorrecto"
+    });
+    return;
+  }
+  var menus = {
+    nombre : req.body.nombre,
+    precio : req.body.precio,
+    descripcion : req.body.descripcion,
+    fechaderegistro : req.body.fechaderegistro,
+    fotodelproducto : req.body.fotodelproducto
+  };
+  var menusData = new Menus(menus);
+
+  menusData.save().then( (rr) => {
+    //content-type
+    res.status(200).json({
+      "id" : rr._id,
+      "msn" : "mostrando menus con exito "
+    });
+  });
+});
+router.get("/menus", (req, res, next) => {
+  var params = req.query;
+  console.log(params);
+  var nombre = params.nombre;
+  var precio = params.precio;
+  var over = params.over;
+
+  if (precio == undefined && over == undefined) {
+    // filtra los datos que tengan en sus atributos lat y lon null;
+    Menus.find({nombre:nombre, descripcion: {$ne: null}}).exec( (error, docs) => {
+      res.status(200).json(
+        {
+          info: docs
+        }
+      );
+    })
+    return;
+  }
+  if (over == "equals") {
+    console.log("--------->>>>>>>")
+    Menus.find({precio:precio, nombre:nombre, descripcion: {$ne: null}}).exec( (error, docs) => {
+      res.status(200).json(
+        {
+          info: docs
+        }
+      );
+    })
+    return;
+  } else if ( over == "true") {
+    Menus.find({precio: {$gt:precio}, nombre: {$gt:nombre}, descripcion: {$ne: null}}).exec( (error, docs) => {
+      res.status(200).json(
+        {
+          info: docs
+        }
+      );
+    })
+  } else if (over == "false") {
+    Menus.find({precio: {$lt:precio}, nombre: {$lt: nombre}, descripcion: {$ne: null}}).exec( (error, docs) => {
+      res.status(200).json(
+        {
+          info: docs
+        }
+      );
+    })
+  }
+});
+// Read only one user
+router.get(/menus\/[a-z0-9]{1,}$/, (req, res) => {
+  var url = req.url;
+  var id = url.split("/")[2];
+  Menus.findOne({_id : id}).exec( (error, docs) => {
+    if (docs != null) {
+        res.status(200).json(docs);
+        return;
+    }
+
+    res.status(200).json({
+      "msn" : " El menu no existe "
+    });
+  })
+});
+//elimina un restaurant
+router.delete(/menus\/[a-z0-9]{1,}$/, (req, res) => {
+  var url = req.url;
+  var id = url.split("/")[2];
+  Menus.find({_id : id}).remove().exec( (err, docs) => {
+      res.status(200).json(docs);
+  });
+});
+//Actualizar solo x elementos
+router.patch(/menus\/[a-z0-9]{1,}$/, (req, res) => {
+  var url = req.url;
+  var id = url.split("/")[2];
+  var keys = Object.keys(req.body);
+  var menus = {};
+  for (var i = 0; i < keys.length; i++) {
+    menus[keys[i]] = req.body[keys[i]];
+  }
+  console.log(menus);
+  Menus.findOneAndUpdate({_id: id}, menus, (err, params) => {
+      if(err) {
+        res.status(500).json({
+          "msn": "Error no se pudo actualizar los datos"
+        });
+        return;
+      }
+      res.status(200).json(params);
+      return;
+  });
+});
+//Actualiza los datos del restaurant
+router.put(/menus\/[a-z0-9]{1,}$/, (req, res) => {
+  var url = req.url;
+  var id = url.split("/")[2];
+  var keys  = Object.keys(req.body);
+  var oficialkeys = ['nombre', 'precio', 'descripcion', 'fechaderegistro'];
+  var result = _.difference(oficialkeys, keys);
+  if (result.length > 0) {
+    res.status(400).json({
+      "msn" : "Existe un error en el formato de envio puede hacer uso del metodo patch si desea editar solo un fragmentode la informacion"
+    });
+    return;
+  }
+
+  var menus = {
+    nombre : req.body.nombre,
+    precio : req.body.precio,
+    descripcion : req.body.descripcion,
+    fechaderegistro : req.body.fechaderegistro,
+
+  };
+  Menus.findOneAndUpdate({_id: id}, menus, (err, params) => {
       if(err) {
         res.status(500).json({
           "msn": "Error no se pudo actualizar los datos"
