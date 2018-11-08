@@ -2,7 +2,7 @@ var express = require('express');
 var multer = require('multer');
 var router = express.Router();
 var fs = require('fs');
-//var _ = require("underscore");
+var _ = require("underscore");
 var Home = require("../../../database/collections/homes");
 var Img = require("../../../database/collections/img");
 var Menus = require("../../../database/collections/menus");
@@ -386,7 +386,7 @@ router.get(/restaurant\/[a-z0-9]{1,}$/, (req, res) => {
   })
 });
 //elimina un restaurant
-router.delete(/restaurant\/[a-z0-9]{1,}$/, verifytoken, (req, res) => {
+router.delete(/restaurant\/[a-z0-9]{1,}$/, (req, res) => {
   var url = req.url;
   var id = url.split("/")[2];
   Restaurant.find({_id : id}).remove().exec( (err, docs) => {
@@ -394,11 +394,11 @@ router.delete(/restaurant\/[a-z0-9]{1,}$/, verifytoken, (req, res) => {
   });
 });
 //Actualiza los datos del restaurant
-router.put(/restaurant\/[a-z0-9]{1,}$/, verifytoken,(req, res) => {
+router.put(/restaurant\/[a-z0-9]{1,}$/, (req, res) => {
   var url = req.url;
   var id = url.split("/")[2];
   var keys  = Object.keys(req.body);
-  var oficialkeys = ['nombre', 'nit', 'propiedad', 'calle', 'telefono', 'lat', 'lon', 'fechaderegistro', 'fotolugar'];
+  var oficialkeys = ['nombre', 'nit', 'propiedad', 'calle', 'telefono', 'lat', 'lon', 'fechaderegistro'];
   var result = _.difference(oficialkeys, keys);
   if (result.length > 0) {
     res.status(400).json({
@@ -416,9 +416,9 @@ router.put(/restaurant\/[a-z0-9]{1,}$/, verifytoken,(req, res) => {
     lat : req.body.lat,
     lon : req.body.lon,
     fechaderegistro : req.body.fechaderegistro,
-    fotolugar : req.body.foto
+
   };
-  Restaurant.findOneAndUpdate({_id: id}, user, (err, params) => {
+  Restaurant.findOneAndUpdate({_id: id}, restaurant, (err, params) => {
       if(err) {
         res.status(500).json({
           "msn": "Error no se pudo actualizar los datos"
