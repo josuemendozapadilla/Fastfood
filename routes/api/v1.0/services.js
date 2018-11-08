@@ -475,53 +475,12 @@ router.post("/menus", (req, res) => {
     });
   });
 });
-router.get("/menus", (req, res, next) => {
-  var params = req.query;
-  console.log(params);
-  var nombre = params.nombre;
-  var precio = params.precio;
-  var over = params.over;
-
-  if (precio == undefined && over == undefined) {
-    // filtra los datos que tengan en sus atributos lat y lon null;
-    Menus.find({nombre:nombre, descripcion: {$ne: null}}).exec( (error, docs) => {
-      res.status(200).json(
-        {
-          info: docs
-        }
-      );
-    })
-    return;
-  }
-  if (over == "equals") {
-    console.log("--------->>>>>>>")
-    Menus.find({precio:precio, nombre:nombre, descripcion: {$ne: null}}).exec( (error, docs) => {
-      res.status(200).json(
-        {
-          info: docs
-        }
-      );
-    })
-    return;
-  } else if ( over == "true") {
-    Menus.find({precio: {$gt:precio}, nombre: {$gt:nombre}, descripcion: {$ne: null}}).exec( (error, docs) => {
-      res.status(200).json(
-        {
-          info: docs
-        }
-      );
-    })
-  } else if (over == "false") {
-    Menus.find({precio: {$lt:precio}, nombre: {$lt: nombre}, descripcion: {$ne: null}}).exec( (error, docs) => {
-      res.status(200).json(
-        {
-          info: docs
-        }
-      );
-    })
-  }
+router.get("/menus", (req, res, next) =>{
+  Menus.find({}).exec((error, docs) => {
+    res.status(200).json(docs);
+  });
 });
-// Read only one user
+
 router.get(/menus\/[a-z0-9]{1,}$/, (req, res) => {
   var url = req.url;
   var id = url.split("/")[2];
@@ -532,10 +491,11 @@ router.get(/menus\/[a-z0-9]{1,}$/, (req, res) => {
     }
 
     res.status(200).json({
-      "msn" : " El menu no existe "
+      "msn" : "No existe el recurso "
     });
   })
 });
+
 //elimina un restaurant
 router.delete(/menus\/[a-z0-9]{1,}$/, (req, res) => {
   var url = req.url;
