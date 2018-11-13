@@ -451,7 +451,6 @@ router.put(/restaurant\/[a-z0-9]{1,}$/, (req, res) => {
       return;
   });
 });
-//MENU
 router.post("/menus", (req, res) => {
   //Ejemplo de validacion
   if (req.body.nombre == "" && req.body.precio == "") {
@@ -559,7 +558,6 @@ router.put(/menus\/[a-z0-9]{1,}$/, (req, res) => {
       return;
   });
 });
-//ORDEN
 
 router.post("/cliente", (req, res) => {
   //Ejemplo de validacion
@@ -722,7 +720,7 @@ router.get("/orden", (req, res, next) => {
         {
           info: docs
         }
-      )
+      );
     })
     return;
   } else if ( over == "true") {
@@ -822,16 +820,4 @@ router.put(/orden\/[a-z0-9]{1,}$/, (req, res) => {
   });
 });
 
-  };
-  Orden.findOneAndUpdate({_id: id}, orden, (err, params) => {
-      if(err) {
-        res.status(500).json({
-          "msn": "Error no se pudo actualizar los datos"
-        });
-        return;
-      }
-      res.status(200).json(params);
-      return;
-  });
-});
 module.exports = router;
