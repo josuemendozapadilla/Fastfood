@@ -8,6 +8,7 @@ var Img = require("../../../database/collections/img");
 var Menus = require("../../../database/collections/menus");
 var Orden = require("../../../database/collections/orden");
 var Restaurant = require("../../../database/collections/restaurant");
+var Cliente = require("../../../database/collections/cliente");
 var jwt = require("jsonwebtoken");
 
 
@@ -559,9 +560,119 @@ router.put(/menus\/[a-z0-9]{1,}$/, (req, res) => {
   });
 });
 //ORDEN
+
+router.post("/cliente", (req, res) => {
+  //Ejemplo de validacion
+  if (req.body.nombre == "" && req.body.ci == "") {
+    res.status(400).json({
+      "msn" : "formato incorrecto"
+    });
+    return;
+  }
+  var cliente = {
+    nombre : req.body.nombre,
+    apellido : req.body.apellido,
+    ci : req.body.ci,
+    fechaderegistro : req.body.fechaderegistro,
+    telefono : req.body.telefono,
+    gmail : req.body.gmail
+  };
+  var clienteData = new Cliente(cliente);
+
+  clienteData.save().then( (rr) => {
+    //content-type
+    res.status(200).json({
+      "id" : rr._id,
+      "msn" : "mostrando menus con exito "
+    });
+  });
+});
+router.get("/cliente", (req, res, next) =>{
+  Cliente.find({}).exec((error, docs) => {
+    res.status(200).json(docs);
+  });
+});
+
+router.get(/cliente\/[a-z0-9]{1,}$/, (req, res) => {
+  var url = req.url;
+  var id = url.split("/")[2];
+  Cliente.findOne({_id : id}).exec( (error, docs) => {
+    if (docs != null) {
+        res.status(200).json(docs);
+        return;
+    }
+
+    res.status(200).json({
+      "msn" : "No existe el recurso "
+    });
+  })
+});
+
+//elimina un restaurant
+router.delete(/cliente\/[a-z0-9]{1,}$/, (req, res) => {
+  var url = req.url;
+  var id = url.split("/")[2];
+  cliente.find({_id : id}).remove().exec( (err, docs) => {
+      res.status(200).json(docs);
+  });
+});
+//Actualizar solo x elementos
+router.patch(/cliente\/[a-z0-9]{1,}$/, (req, res) => {
+  var url = req.url;
+  var id = url.split("/")[2];
+  var keys = Object.keys(req.body);
+  var menus = {};
+  for (var i = 0; i < keys.length; i++) {
+    cliente[keys[i]] = req.body[keys[i]];
+  }
+  console.log(menus);
+  Cliente.findOneAndUpdate({_id: id}, menus, (err, params) => {
+      if(err) {
+        res.status(500).json({
+          "msn": "Error no se pudo actualizar los datos"
+        });
+        return;
+      }
+      res.status(200).json(params);
+      return;
+  });
+});
+//Actualiza los datos del restaurant
+router.put(/cliente\/[a-z0-9]{1,}$/, (req, res) => {
+  var url = req.url;
+  var id = url.split("/")[2];
+  var keys  = Object.keys(req.body);
+  var oficialkeys = ['nombre', 'apellido', 'ci', 'fechaderegistro', 'telefono', 'gmail'];
+  var result = _.difference(oficialkeys, keys);
+  if (result.length > 0) {
+    res.status(400).json({
+      "msn" : "Existe un error en el formato de envio puede hacer uso del metodo patch si desea editar solo un fragmentode la informacion"
+    });
+    return;
+  }
+
+  var cliente = {
+    nombre : req.body.nombre,
+    apellido : req.body.apellido,
+    ci : req.body.ci,
+    fechaderegistro : req.body.fechaderegistro,
+    telefono : req.body.telefono,
+    gmail : req.body.gmail
+  };
+  Cliente.findOneAndUpdate({_id: id}, cliente, (err, params) => {
+      if(err) {
+        res.status(500).json({
+          "msn": "Error no se pudo actualizar los datos"
+        });
+        return;
+      }
+      res.status(200).json(params);
+      return;
+  });
+});
 router.post("/orden", (req, res) => {
   //Ejemplo de validacion
-  if (req.body.idmenu == "" && req.body.pagototal == "") {
+  if (req.body.idmenu == "" && req.body.idrestaurant == "") {
     res.status(400).json({
       "msn" : "formato incorrecto"
     });
@@ -572,24 +683,67 @@ router.post("/orden", (req, res) => {
     idrestaurant : req.body.idrestaurant,
     cantidad : req.body.cantidad,
     idcliente : req.body.idcliente,
+    lat : req.body.lat,
+    lon : req.body.lon,
     pagototal : req.body.pagototal
   };
+  console.log(orden);
   var ordenData = new Orden(orden);
 
   ordenData.save().then( (rr) => {
     //content-type
     res.status(200).json({
       "id" : rr._id,
-      "msn" : "orden registrado con exito "
+      "msn" : "usuario Registrado con exito "
     });
   });
 });
-router.get("/orden", (req, res, next) =>{
-  Orden.find({}).exec((error, docs) => {
-    res.status(200).json(docs);
-  });
-});
+router.get("/orden", (req, res, next) => {
+  var params = req.query;
+  console.log(params);
+  var cantidad = params.cantidad;
+  var over = params.over;
 
+  if (cantidad == undefined && over == undefined) {
+    // filtra los datos que tengan en sus atributos lat y lon null;
+    Orden.find({lat: {$ne: null}, lon: {$ne: null}}).exec( (error, docs) => {
+      res.status(200).json(
+        {
+          info: docs
+        }
+      );
+    })
+    return;
+  }
+  if (over == "equals") {
+    console.log("--------->>>>>>>")
+    Orden.find({cantidad:cantidad, lat: {$ne: null}, lon: {$ne: null}}).exec( (error, docs) => {
+      res.status(200).json(
+        {
+          info: docs
+        }
+      )
+    })
+    return;
+  } else if ( over == "true") {
+    Orden.find({cantidad: {$gt:cantidad}, lat: {$ne: null}, lon: {$ne: null}}).exec( (error, docs) => {
+      res.status(200).json(
+        {
+          info: docs
+        }
+      );
+    })
+  } else if (over == "false") {
+    Orden.find({cantidad: {$lt:cantidad}, lat: {$ne: null}, lon: {$ne: null}}).exec( (error, docs) => {
+      res.status(200).json(
+        {
+          info: docs
+        }
+      );
+    })
+  }
+});
+// Read only one user
 router.get(/orden\/[a-z0-9]{1,}$/, (req, res) => {
   var url = req.url;
   var id = url.split("/")[2];
@@ -600,11 +754,10 @@ router.get(/orden\/[a-z0-9]{1,}$/, (req, res) => {
     }
 
     res.status(200).json({
-      "msn" : "No existe la orden "
+      "msn" : "No existe el recurso "
     });
   })
 });
-
 //elimina un restaurant
 router.delete(/orden\/[a-z0-9]{1,}$/, (req, res) => {
   var url = req.url;
@@ -639,7 +792,7 @@ router.put(/orden\/[a-z0-9]{1,}$/, (req, res) => {
   var url = req.url;
   var id = url.split("/")[2];
   var keys  = Object.keys(req.body);
-  var oficialkeys = ['cantidad', 'pagototal'];
+  var oficialkeys = ['idmenu', 'idrestaurant', 'cantidad', 'idcliente', 'lat', 'lon', 'pagototal'];
   var result = _.difference(oficialkeys, keys);
   if (result.length > 0) {
     res.status(400).json({
@@ -649,8 +802,25 @@ router.put(/orden\/[a-z0-9]{1,}$/, (req, res) => {
   }
 
   var orden = {
+    idmenu : req.body.idmenu,
+    idrestaurant : req.body.idrestaurant,
     cantidad : req.body.cantidad,
+    idcliente : req.body.idcliente,
+    lat : req.body.lat,
+    lon : req.body.lon,
     pagototal : req.body.pagototal
+  };
+  Orden.findOneAndUpdate({_id: id}, orden, (err, params) => {
+      if(err) {
+        res.status(500).json({
+          "msn": "Error no se pudo actualizar los datos"
+        });
+        return;
+      }
+      res.status(200).json(params);
+      return;
+  });
+});
 
   };
   Orden.findOneAndUpdate({_id: id}, orden, (err, params) => {

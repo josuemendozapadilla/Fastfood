@@ -5,7 +5,9 @@ var ordenSchema = new Schema({
   idmenu : String,
   idrestaurant : String,
   cantidad : Number,
-  idcliente : Number,
+  idcliente : String,
+  lat : Number,
+  lon : Number,
   pagototal : Number
 });
 var orden = mongoose.model("orden", ordenSchema);
