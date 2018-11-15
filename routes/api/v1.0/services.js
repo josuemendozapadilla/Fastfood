@@ -9,6 +9,7 @@ var Menus = require("../../../database/collections/menus");
 var Orden = require("../../../database/collections/orden");
 var Restaurant = require("../../../database/collections/restaurant");
 var Cliente = require("../../../database/collections/cliente");
+var Users = require("../../../database/collections/users");
 var jwt = require("jsonwebtoken");
 
 
@@ -809,6 +810,111 @@ router.put(/orden\/[a-z0-9]{1,}$/, (req, res) => {
     pagototal : req.body.pagototal
   };
   Orden.findOneAndUpdate({_id: id}, orden, (err, params) => {
+      if(err) {
+        res.status(500).json({
+          "msn": "Error no se pudo actualizar los datos"
+        });
+        return;
+      }
+      res.status(200).json(params);
+      return;
+  });
+});
+router.post("/users", (req, res) => {
+  //Ejemplo de validacion
+  if (req.body.nombre == "" && req.body.password == "") {
+    res.status(400).json({
+      "msn" : "formato incorrecto"
+    });
+    return;
+  }
+  var users = {
+    nombre : req.body.nombre,
+    telefono : req.body.telefono,
+    gmail : req.body.gmail,
+    password : req.body.password
+  };
+  var usersData = new Users(users);
+
+  usersData.save().then( (rr) => {
+    //content-type
+    res.status(200).json({
+      "id" : rr._id,
+      "msn" : "mostrando ususario con exito "
+    });
+  });
+});
+router.get("/users", (req, res, next) =>{
+  Users.find({}).exec((error, docs) => {
+    res.status(200).json(docs);
+  });
+});
+
+router.get(/users\/[a-z0-9]{1,}$/, (req, res) => {
+  var url = req.url;
+  var id = url.split("/")[2];
+  Users.findOne({_id : id}).exec( (error, docs) => {
+    if (docs != null) {
+        res.status(200).json(docs);
+        return;
+    }
+
+    res.status(200).json({
+      "msn" : "No existe el recurso "
+    });
+  })
+});
+
+//elimina un restaurant
+router.delete(/users\/[a-z0-9]{1,}$/, (req, res) => {
+  var url = req.url;
+  var id = url.split("/")[2];
+  Users.find({_id : id}).remove().exec( (err, docs) => {
+      res.status(200).json(docs);
+  });
+});
+//Actualizar solo x elementos
+router.patch(/users\/[a-z0-9]{1,}$/, (req, res) => {
+  var url = req.url;
+  var id = url.split("/")[2];
+  var keys = Object.keys(req.body);
+  var users = {};
+  for (var i = 0; i < keys.length; i++) {
+    users[keys[i]] = req.body[keys[i]];
+  }
+  console.log(users);
+  Menus.findOneAndUpdate({_id: id}, users, (err, params) => {
+      if(err) {
+        res.status(500).json({
+          "msn": "Error no se pudo actualizar los datos"
+        });
+        return;
+      }
+      res.status(200).json(params);
+      return;
+  });
+});
+//Actualiza los datos del restaurant
+router.put(/users\/[a-z0-9]{1,}$/, (req, res) => {
+  var url = req.url;
+  var id = url.split("/")[2];
+  var keys  = Object.keys(req.body);
+  var oficialkeys = ['nombre', 'telefono', 'gmail', 'password'];
+  var result = _.difference(oficialkeys, keys);
+  if (result.length > 0) {
+    res.status(400).json({
+      "msn" : "Existe un error en en la actualizacion"
+    });
+    return;
+  }
+
+  var users = {
+      nombre : req.body.nombre,
+      telefono : req.body.telefono,
+      gmail : req.body.gmail,
+      password : req.body.password
+  };
+  Users.findOneAndUpdate({_id: id}, users, (err, params) => {
       if(err) {
         res.status(500).json({
           "msn": "Error no se pudo actualizar los datos"
