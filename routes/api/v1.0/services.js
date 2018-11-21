@@ -29,9 +29,9 @@ var upload = multer({
 Login USER
 */
 router.post("/login", (req, res, next) => {
-  var username = req.body.username;
+  var nombre = req.body.nombre;
   var password = req.body.password;
-  var result = Home.findOne({name: username,password: password}).exec((err, doc) => {
+  var result = Users.findOne({nombre: nombre,password: password}).exec((err, doc) => {
     if (err) {
       res.status(200).json({
         msn : "No se puede concretar con la peticion "
@@ -40,7 +40,7 @@ router.post("/login", (req, res, next) => {
     }
     if (doc) {
       //res.status(200).json(doc);
-      jwt.sign({name: doc.name, password: doc.password}, "secretkey123", (err, token) => {
+      jwt.sign({nombre: doc.nombre, password: doc.password}, "secretkey123", (err, token) => {
           console.log(err);
           res.status(200).json({
             token : token
@@ -164,7 +164,6 @@ router.post("/restaurant", (req, res) => {
     telefono : req.body.telefono,
     lat : req.body.lat,
     lon : req.body.lon,
-    fechaderegistro : req.body.fechaderegistro,
     fotolugar : req.body.foto
   };
   var restaurantData = new Restaurant(restaurant);
@@ -173,7 +172,7 @@ router.post("/restaurant", (req, res) => {
     //content-type
     res.status(200).json({
       "id" : rr._id,
-      "msn" : "usuario Registrado con exito "
+      "msn" : "restaurant Registrado con exito "
     });
   });
 });
@@ -271,7 +270,7 @@ router.put(/restaurant\/[a-z0-9]{1,}$/, (req, res) => {
   var url = req.url;
   var id = url.split("/")[2];
   var keys  = Object.keys(req.body);
-  var oficialkeys = ['nombre', 'nit', 'propiedad', 'calle', 'telefono', 'lat', 'lon', 'fechaderegistro'];
+  var oficialkeys = ['nombre', 'nit', 'propiedad', 'calle', 'telefono', 'lat', 'lon'];
   var result = _.difference(oficialkeys, keys);
   if (result.length > 0) {
     res.status(400).json({
@@ -287,8 +286,7 @@ router.put(/restaurant\/[a-z0-9]{1,}$/, (req, res) => {
     calle : req.body.calle,
     telefono : req.body.telefono,
     lat : req.body.lat,
-    lon : req.body.lon,
-    fechaderegistro : req.body.fechaderegistro,
+    lon : req.body.lon
 
   };
   Restaurant.findOneAndUpdate({_id: id}, restaurant, (err, params) => {
@@ -314,7 +312,6 @@ router.post("/menus", (req, res) => {
     nombre : req.body.nombre,
     precio : req.body.precio,
     descripcion : req.body.descripcion,
-    fechaderegistro : req.body.fechaderegistro,
     fotodelproducto : req.body.fotodelproducto
   };
   var menusData = new Menus(menus);
@@ -383,7 +380,7 @@ router.put(/menus\/[a-z0-9]{1,}$/, (req, res) => {
   var url = req.url;
   var id = url.split("/")[2];
   var keys  = Object.keys(req.body);
-  var oficialkeys = ['nombre', 'precio', 'descripcion', 'fechaderegistro'];
+  var oficialkeys = ['nombre', 'precio', 'descripcion'];
   var result = _.difference(oficialkeys, keys);
   if (result.length > 0) {
     res.status(400).json({
@@ -395,8 +392,7 @@ router.put(/menus\/[a-z0-9]{1,}$/, (req, res) => {
   var menus = {
     nombre : req.body.nombre,
     precio : req.body.precio,
-    descripcion : req.body.descripcion,
-    fechaderegistro : req.body.fechaderegistro,
+    descripcion : req.body.descripcion
 
   };
   Menus.findOneAndUpdate({_id: id}, menus, (err, params) => {
@@ -423,7 +419,6 @@ router.post("/cliente", (req, res) => {
     nombre : req.body.nombre,
     apellido : req.body.apellido,
     ci : req.body.ci,
-    fechaderegistro : req.body.fechaderegistro,
     telefono : req.body.telefono,
     gmail : req.body.gmail
   };
@@ -492,7 +487,7 @@ router.put(/cliente\/[a-z0-9]{1,}$/, (req, res) => {
   var url = req.url;
   var id = url.split("/")[2];
   var keys  = Object.keys(req.body);
-  var oficialkeys = ['nombre', 'apellido', 'ci', 'fechaderegistro', 'telefono', 'gmail'];
+  var oficialkeys = ['nombre', 'apellido', 'ci', 'telefono', 'gmail'];
   var result = _.difference(oficialkeys, keys);
   if (result.length > 0) {
     res.status(400).json({
@@ -505,7 +500,6 @@ router.put(/cliente\/[a-z0-9]{1,}$/, (req, res) => {
     nombre : req.body.nombre,
     apellido : req.body.apellido,
     ci : req.body.ci,
-    fechaderegistro : req.body.fechaderegistro,
     telefono : req.body.telefono,
     gmail : req.body.gmail
   };

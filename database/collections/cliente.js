@@ -5,7 +5,10 @@ var clienteSchema = new Schema({
   nombre : String,
   apellido : String,
   ci : String,
-  fechaderegistro : Date,
+  fechaRegistro: {
+      type: Date,
+      default: Date.now()
+  },
   telefono : Number,
   gmail : String
 });
