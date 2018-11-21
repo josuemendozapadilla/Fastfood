@@ -152,7 +152,7 @@ router.post("/restaurant", (req, res) => {
   //Ejemplo de validacion
   if (req.body.nombre == "" && req.body.nit == "") {
     res.status(400).json({
-      "msn" : "formato incorrecto"
+      "msn" : "Fallo de registro"
     });
     return;
   }
@@ -232,7 +232,7 @@ router.get(/restaurant\/[a-z0-9]{1,}$/, (req, res) => {
     }
 
     res.status(200).json({
-      "msn" : "No existe el recurso "
+      "msn" : "No existe el pedido "
     });
   })
 });
@@ -304,7 +304,7 @@ router.post("/menus", (req, res) => {
   //Ejemplo de validacion
   if (req.body.nombre == "" && req.body.precio == "") {
     res.status(400).json({
-      "msn" : "formato incorrecto"
+      "msn" : " Error al registrar"
     });
     return;
   }
@@ -320,7 +320,7 @@ router.post("/menus", (req, res) => {
     //content-type
     res.status(200).json({
       "id" : rr._id,
-      "msn" : "mostrando menus con exito "
+      "msn" : "Mostrando menus con exito "
     });
   });
 });
@@ -341,7 +341,7 @@ router.get(/menus\/[a-z0-9]{1,}$/, (req, res) => {
     }
 
     res.status(200).json({
-      "msn" : "No existe el recurso "
+      "msn" : "No existe el recurso seleccionado "
     });
   })
 });
@@ -367,7 +367,7 @@ router.patch(/menus\/[a-z0-9]{1,}$/, (req, res) => {
   Menus.findOneAndUpdate({_id: id}, menus, (err, params) => {
       if(err) {
         res.status(500).json({
-          "msn": "Error no se pudo actualizar los datos"
+          "msn": "No se pudo actualizar los datos"
         });
         return;
       }
@@ -398,7 +398,7 @@ router.put(/menus\/[a-z0-9]{1,}$/, (req, res) => {
   Menus.findOneAndUpdate({_id: id}, menus, (err, params) => {
       if(err) {
         res.status(500).json({
-          "msn": "Error no se pudo actualizar los datos"
+          "msn": "No se pudo actualizar los datos"
         });
         return;
       }
@@ -411,7 +411,7 @@ router.post("/cliente", (req, res) => {
   //Ejemplo de validacion
   if (req.body.nombre == "" && req.body.ci == "") {
     res.status(400).json({
-      "msn" : "formato incorrecto"
+      "msn" : "Formato incorrecto"
     });
     return;
   }
@@ -428,7 +428,7 @@ router.post("/cliente", (req, res) => {
     //content-type
     res.status(200).json({
       "id" : rr._id,
-      "msn" : "mostrando menus con exito "
+      "msn" : "Mostrando menus con exito "
     });
   });
 });
@@ -448,7 +448,7 @@ router.get(/cliente\/[a-z0-9]{1,}$/, (req, res) => {
     }
 
     res.status(200).json({
-      "msn" : "No existe el recurso "
+      "msn" : "No existe el pedido "
     });
   })
 });
@@ -537,7 +537,11 @@ router.post("/orden", (req, res) => {
     //content-type
     res.status(200).json({
       "id" : rr._id,
-      "msn" : "usuario Registrado con exito "
+      "array_texto":
+        [{
+          "texto":"<b>orden</b>",
+          "texto":"registrado con exito"
+        }]
     });
   });
 });
@@ -597,7 +601,14 @@ router.get(/orden\/[a-z0-9]{1,}$/, (req, res) => {
     }
 
     res.status(200).json({
-      "msn" : "No existe el recurso "
+
+        "array_texto":
+          {
+            "texto":"<b>orden</b>",
+            "texto":"registrado con exito"
+          }
+
+
     });
   })
 });
