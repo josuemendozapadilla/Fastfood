@@ -9,7 +9,9 @@ var restaurantSchema = new Schema({
   telefono : Number,
   lat : Number,
   lon : Number,
-  fechaderegistro : String,
+  fechaderegistro: {
+    type: Date, default: Date.now
+  },
   fotolugar : Array
 });
 var restaurant = mongoose.model("restaurant", restaurantSchema);

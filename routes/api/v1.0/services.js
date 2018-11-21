@@ -3,7 +3,7 @@ var multer = require('multer');
 var router = express.Router();
 var fs = require('fs');
 var _ = require("underscore");
-var Home = require("../../../database/collections/homes");
+
 var Img = require("../../../database/collections/img");
 var Menus = require("../../../database/collections/menus");
 var Orden = require("../../../database/collections/orden");
@@ -146,157 +146,7 @@ router.get(/homeimg\/[a-z0-9]{1,}$/, (req, res) => {
     res.status(200).send(img);
   });
 });
-router.post("/home", (req, res) => {
-  //Ejemplo de validacion
-  if (req.body.name == "" && req.body.email == "") {
-    res.status(400).json({
-      "msn" : "formato incorrecto"
-    });
-    return;
-  }
-  var home = {
-    street : req.body.street,
-    descripcion : req.body.descripcion,
-    price : req.body.price,
-    lat : req.body.lat,
-    lon : req.body.lon,
-    neighborhood : req.body.neighborhood,
-    city : req.body.city,
-    gallery: "",
-    contact: req.body.contact
-  };
-  var homeData = new Home(home);
 
-  homeData.save().then( (rr) => {
-    //content-type
-    res.status(200).json({
-      "id" : rr._id,
-      "msn" : "usuario Registrado con exito "
-    });
-  });
-});
-
-// READ all users
-router.get("/home", (req, res, next) => {
-  var params = req.query;
-  console.log(params);
-  var price = params.price;
-  var over = params.over;
-
-  if (price == undefined && over == undefined) {
-    // filtra los datos que tengan en sus atributos lat y lon null;
-    Home.find({lat: {$ne: null}, lon: {$ne: null}}).exec( (error, docs) => {
-      res.status(200).json(
-        {
-          info: docs
-        }
-      );
-    })
-    return;
-  }
-  if (over == "equals") {
-    console.log("--------->>>>>>>")
-    Home.find({price:price, lat: {$ne: null}, lon: {$ne: null}}).exec( (error, docs) => {
-      res.status(200).json(
-        {
-          info: docs
-        }
-      );
-    })
-    return;
-  } else if ( over == "true") {
-    Home.find({price: {$gt:price}, lat: {$ne: null}, lon: {$ne: null}}).exec( (error, docs) => {
-      res.status(200).json(
-        {
-          info: docs
-        }
-      );
-    })
-  } else if (over == "false") {
-    Home.find({price: {$lt:price}, lat: {$ne: null}, lon: {$ne: null}}).exec( (error, docs) => {
-      res.status(200).json(
-        {
-          info: docs
-        }
-      );
-    })
-  }
-});
-// Read only one user
-router.get(/home\/[a-z0-9]{1,}$/, (req, res) => {
-  var url = req.url;
-  var id = url.split("/")[2];
-  User.findOne({_id : id}).exec( (error, docs) => {
-    if (docs != null) {
-        res.status(200).json(docs);
-        return;
-    }
-
-    res.status(200).json({
-      "msn" : "No existe el recurso "
-    });
-  })
-});
-
-router.delete(/home\/[a-z0-9]{1,}$/, verifytoken, (req, res) => {
-  var url = req.url;
-  var id = url.split("/")[2];
-  User.find({_id : id}).remove().exec( (err, docs) => {
-      res.status(200).json(docs);
-  });
-});
-router.patch(/home\/[a-z0-9]{1,}$/, (req, res) => {
-  var url = req.url;
-  var id = url.split("/")[2];
-  var keys = Object.keys(req.body);
-  var home = {};
-  for (var i = 0; i < keys.length; i++) {
-    home[keys[i]] = req.body[keys[i]];
-  }
-  console.log(home);
-  Home.findOneAndUpdate({_id: id}, home, (err, params) => {
-      if(err) {
-        res.status(500).json({
-          "msn": "Error no se pudo actualizar los datos"
-        });
-        return;
-      }
-      res.status(200).json(params);
-      return;
-  });
-});
-router.put(/home\/[a-z0-9]{1,}$/, verifytoken,(req, res) => {
-  var url = req.url;
-  var id = url.split("/")[2];
-  var keys  = Object.keys(req.body);
-  var oficialkeys = ['name', 'altura', 'peso', 'edad', 'sexo', 'email'];
-  var result = _.difference(oficialkeys, keys);
-  if (result.length > 0) {
-    res.status(400).json({
-      "msn" : "Existe un error en el formato de envio puede hacer uso del metodo patch si desea editar solo un fragmentode la informacion"
-    });
-    return;
-  }
-
-  var user = {
-    name : req.body.name,
-    altura : req.body.altura,
-    peso : req.body.peso,
-    edad : req.body.edad,
-    sexo : req.body.sexo,
-    email : req.body.email
-  };
-  Home.findOneAndUpdate({_id: id}, user, (err, params) => {
-      if(err) {
-        res.status(500).json({
-          "msn": "Error no se pudo actualizar los datos"
-        });
-        return;
-      }
-      res.status(200).json(params);
-      return;
-  });
-});
 /*RESTAURANT*/
 router.post("/restaurant", (req, res) => {
   //Ejemplo de validacion
@@ -478,6 +328,7 @@ router.post("/menus", (req, res) => {
   });
 });
 router.get("/menus", (req, res, next) =>{
+  var me
   Menus.find({}).exec((error, docs) => {
     res.status(200).json(docs);
   });
@@ -624,8 +475,8 @@ router.patch(/cliente\/[a-z0-9]{1,}$/, (req, res) => {
   for (var i = 0; i < keys.length; i++) {
     cliente[keys[i]] = req.body[keys[i]];
   }
-  console.log(menus);
-  Cliente.findOneAndUpdate({_id: id}, menus, (err, params) => {
+  console.log(cliente);
+  Cliente.findOneAndUpdate({_id: id}, cliente, (err, params) => {
       if(err) {
         res.status(500).json({
           "msn": "Error no se pudo actualizar los datos"
@@ -671,7 +522,7 @@ router.put(/cliente\/[a-z0-9]{1,}$/, (req, res) => {
 });
 router.post("/orden", (req, res) => {
   //Ejemplo de validacion
-  if (req.body.idmenu == "" && req.body.idrestaurant == "") {
+  if (req.body.idmenu == "" && req.body.idcliente== "") {
     res.status(400).json({
       "msn" : "formato incorrecto"
     });
@@ -679,7 +530,6 @@ router.post("/orden", (req, res) => {
   }
   var orden = {
     idmenu : req.body.idmenu,
-    idrestaurant : req.body.idrestaurant,
     cantidad : req.body.cantidad,
     idcliente : req.body.idcliente,
     lat : req.body.lat,
@@ -713,7 +563,7 @@ router.get("/orden", (req, res, next) => {
       );
     })
     return;
-  }
+  }s
   if (over == "equals") {
     console.log("--------->>>>>>>")
     Orden.find({cantidad:cantidad, lat: {$ne: null}, lon: {$ne: null}}).exec( (error, docs) => {
@@ -820,9 +670,10 @@ router.put(/orden\/[a-z0-9]{1,}$/, (req, res) => {
       return;
   });
 });
+
 router.post("/users", (req, res) => {
   //Ejemplo de validacion
-  if (req.body.nombre == "" && req.body.password == "") {
+  if (req.body.nombre == "" && req.body.ci == "") {
     res.status(400).json({
       "msn" : "formato incorrecto"
     });
@@ -830,9 +681,10 @@ router.post("/users", (req, res) => {
   }
   var users = {
     nombre : req.body.nombre,
-    telefono : req.body.telefono,
-    gmail : req.body.gmail,
-    password : req.body.password
+    ci : req.body.ci,
+    email : req.body.email,
+    password: req.body.password,
+    telefono : req.body.telefono
   };
   var usersData = new Users(users);
 
@@ -840,7 +692,7 @@ router.post("/users", (req, res) => {
     //content-type
     res.status(200).json({
       "id" : rr._id,
-      "msn" : "mostrando ususario con exito "
+      "msn" : "registro exitoso con exito "
     });
   });
 });
@@ -860,7 +712,7 @@ router.get(/users\/[a-z0-9]{1,}$/, (req, res) => {
     }
 
     res.status(200).json({
-      "msn" : "No existe el recurso "
+      "msn" : "No existe el usuario "
     });
   })
 });
@@ -883,7 +735,7 @@ router.patch(/users\/[a-z0-9]{1,}$/, (req, res) => {
     users[keys[i]] = req.body[keys[i]];
   }
   console.log(users);
-  Menus.findOneAndUpdate({_id: id}, users, (err, params) => {
+  Users.findOneAndUpdate({_id: id}, users, (err, params) => {
       if(err) {
         res.status(500).json({
           "msn": "Error no se pudo actualizar los datos"
@@ -899,20 +751,21 @@ router.put(/users\/[a-z0-9]{1,}$/, (req, res) => {
   var url = req.url;
   var id = url.split("/")[2];
   var keys  = Object.keys(req.body);
-  var oficialkeys = ['nombre', 'telefono', 'gmail', 'password'];
+  var oficialkeys = ['nombre', 'ci', 'email', 'password', 'telefono'];
   var result = _.difference(oficialkeys, keys);
   if (result.length > 0) {
     res.status(400).json({
-      "msn" : "Existe un error en en la actualizacion"
+      "msn" : "Exiiste el usuario"
     });
     return;
   }
 
   var users = {
-      nombre : req.body.nombre,
-      telefono : req.body.telefono,
-      gmail : req.body.gmail,
-      password : req.body.password
+    nombre : req.body.nombre,
+    ci : req.body.ci,
+    email : req.body.gmail,
+    password: req.body.password,
+    telefono : req.body.telefono
   };
   Users.findOneAndUpdate({_id: id}, users, (err, params) => {
       if(err) {

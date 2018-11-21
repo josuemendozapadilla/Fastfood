@@ -5,7 +5,9 @@ var menusSchema = new Schema({
   nombre : String,
   precio : Number,
   descripcion : String,
-  fechaderegistro : Date,
+  fechaderegistro :  {
+    type: Date, default: Date.now
+  },
   fotodelproducto : Array
 });
 var menus = mongoose.model("menus", menusSchema);
