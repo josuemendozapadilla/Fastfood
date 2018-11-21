@@ -3,9 +3,9 @@ var mon = require('mongoose');
  var Schema = mon.Schema;
 var imgSchema = new Schema({
   name : String,
-  idhome: String,
+  idrestaurant: String,
   physicalpath : String,
-  relativepath : String
+  //relativepath : String
 });
 var img = mongoose.model("img", imgSchema);
 module.exports = img;

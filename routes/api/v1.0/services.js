@@ -76,7 +76,7 @@ function verifytoken (req, res, next) {
 }
 //CRUD Create, Read, Update, Delete
 //Creation of users
-router.post(/homeimg\/[a-z0-9]{1,}$/, (req, res) => {
+router.post(/restaurantimg\/[a-z0-9]{1,}$/, (req, res) => {
   var url = req.url;
   var id = url.split("/")[2];
   upload(req, res, (err) => {
@@ -88,10 +88,10 @@ router.post(/homeimg\/[a-z0-9]{1,}$/, (req, res) => {
       var ruta = req.file.path.substr(6, req.file.path.length);
       console.log(ruta);
       var img = {
-        idhome: id,
+        idrestaurant: req.body.idrestaurant,
         name : req.file.originalname,
-        physicalpath: req.file.path,
-        relativepath: "http://localhost:7777" + ruta
+        physicalpath: req.file.path
+        //relativepath: "http://localhost:7777" + ruta
       };
       var imgData = new Img(img);
       imgData.save().then( (infoimg) => {
@@ -100,18 +100,18 @@ router.post(/homeimg\/[a-z0-9]{1,}$/, (req, res) => {
         var home = {
           gallery: new Array()
         }
-        Home.findOne({_id:id}).exec( (err, docs) =>{
+        Restaurant.findOne({_id:id}).exec( (err, docs) =>{
           //console.log(docs);
           var data = docs.gallery;
           var aux = new  Array();
           if (data.length == 1 && data[0] == "") {
-            home.gallery.push("/api/v1.0/homeimg/" + infoimg._id)
+            Restaurant.gallery.push("/api/v1.0/restaurantimg/" + infoimg._id)
           } else {
-            aux.push("/api/v1.0/homeimg/" + infoimg._id);
+            aux.push("/api/v1.0/restaurantimg/" + infoimg._id);
             data = data.concat(aux);
-            home.gallery = data;
+            Restaurant.gallery = data;
           }
-          Home.findOneAndUpdate({_id : id}, home, (err, params) => {
+          Restaurant.findOneAndUpdate({_id : id}, home, (err, params) => {
               if (err) {
                 res.status(500).json({
                   "msn" : "error en la actualizacion del usuario"
@@ -128,7 +128,7 @@ router.post(/homeimg\/[a-z0-9]{1,}$/, (req, res) => {
     }
   });
 });
-router.get(/homeimg\/[a-z0-9]{1,}$/, (req, res) => {
+router.get(/restaurantimg\/[a-z0-9]{1,}$/, (req, res) => {
   var url = req.url;
   var id = url.split("/")[2];
   console.log(id)
