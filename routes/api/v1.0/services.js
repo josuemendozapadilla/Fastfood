@@ -90,28 +90,30 @@ router.post(/restaurantimg\/[a-z0-9]{1,}$/, (req, res) => {
       var img = {
         idrestaurant: req.body.idrestaurant,
         name : req.file.originalname,
-        physicalpath: req.file.path
-        //relativepath: "http://localhost:7777" + ruta
+        physicalpath: req.file.path,
+        relativepath: "http://localhost:7777" + ruta
       };
       var imgData = new Img(img);
       imgData.save().then( (infoimg) => {
         //content-type
         //Update User IMG
-        var home = {
-          gallery: new Array()
+        var restaurant = {
+          fotolugar: new Array()
         }
         Restaurant.findOne({_id:id}).exec( (err, docs) =>{
           //console.log(docs);
-          var data = docs.gallery;
+          var data = docs.fotolugar;
+          console.log('data '+ data);
+          
           var aux = new  Array();
           if (data.length == 1 && data[0] == "") {
-            Restaurant.gallery.push("/api/v1.0/restaurantimg/" + infoimg._id)
+            Restaurant.fotolugar.push("/api/v1.0/restaurantimg/" + infoimg._id)
           } else {
             aux.push("/api/v1.0/restaurantimg/" + infoimg._id);
             data = data.concat(aux);
-            Restaurant.gallery = data;
+            Restaurant.fotolugar = data;
           }
-          Restaurant.findOneAndUpdate({_id : id}, home, (err, params) => {
+          Restaurant.findOneAndUpdate({_id : id}, restaurant, (err, params) => {
               if (err) {
                 res.status(500).json({
                   "msn" : "error en la actualizacion del usuario"

@@ -2,7 +2,7 @@ const mongoose = require("../connect");
 var mon = require('mongoose');
 var Schema = mon.Schema;
 var usersSchema = new Schema({
-  nombre: String,
+    nombre: String,
     ci: String,
     email: String,
     password: String,
