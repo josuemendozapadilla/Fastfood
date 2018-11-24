@@ -1,14 +1,25 @@
 const mongoose = require("../connect");
 var mon = require('mongoose');
+var ObjectId = mongoose.Schema.Types.ObjectId;
 var Schema = mon.Schema;
 var ordenSchema = new Schema({
-  idmenu : String,
+
+  idmenus : {type: Schema.ObjectId, ref: "users"},
   idrestaurant: {type: Schema.ObjectId, ref: "restaurant"},
-  cantidad : Number,
-  idcliente : String,
-  lat : Number,
-  lon : Number,
-  pagototal : Number
+  idcliente : {type: Schema.ObjectId, ref: "cliente"},
+  shippinAddress:{
+    lon:String,
+    lat:String
+  },
+  pagototal : Number,
+  orden:[
+    {
+      id:ObjectId,
+      cantidad:Number,
+      precio:Number
+
+    }
+  ],
 
 });
 var orden = mongoose.model("orden", ordenSchema);

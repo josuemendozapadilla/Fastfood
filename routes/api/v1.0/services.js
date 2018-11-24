@@ -103,8 +103,8 @@ router.post(/restaurantimg\/[a-z0-9]{1,}$/, (req, res) => {
         Restaurant.findOne({_id:id}).exec( (err, docs) =>{
           //console.log(docs);
           var data = docs.fotolugar;
-          console.log('data '+ data);
-          
+          console.log('data ', data);
+
           var aux = new  Array();
           if (data.length == 1 && data[0] == "") {
             Restaurant.fotolugar.push("/api/v1.0/restaurantimg/" + infoimg._id)
@@ -518,32 +518,22 @@ router.put(/cliente\/[a-z0-9]{1,}$/, (req, res) => {
 });
 router.post("/orden", (req, res) => {
   //Ejemplo de validacion
-  if (req.body.idmenu == "" && req.body.idcliente== "") {
+  console.log(req.body);
+  /*if (req.body.idmenu == "" && req.body.idcliente== "") {
     res.status(400).json({
       "msn" : "formato incorrecto"
     });
     return;
   }
-  var orden = {
-    idmenu : req.body.idmenu,
-    cantidad : req.body.cantidad,
-    idcliente : req.body.idcliente,
-    lat : req.body.lat,
-    lon : req.body.lon,
-    pagototal : req.body.pagototal
-  };
-  console.log(orden);
-  var ordenData = new Orden(orden);
+*/
 
-  ordenData.save().then( (rr) => {
+  var ordenData = new Orden(req.body);
+
+  ordenData.save().then( () => {
     //content-type
     res.status(200).json({
-      "id" : rr._id,
-      "array_texto":
-        [{
-          "texto":"<b>orden</b>",
-          "texto":"registrado con exito"
-        }]
+      
+      "msn":"resgistrado con exito"
     });
   });
 });
