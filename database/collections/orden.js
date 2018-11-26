@@ -4,15 +4,16 @@ var ObjectId = mongoose.Schema.Types.ObjectId;
 var Schema = mon.Schema;
 var ordenSchema = new Schema({
 
-  idmenus : {type: Schema.ObjectId, ref: "users"},
-  idrestaurant: {type: Schema.ObjectId, ref: "restaurant"},
-  idcliente : {type: Schema.ObjectId, ref: "cliente"},
-  shippinAddress:{
+  Idmenus : {type: Schema.ObjectId, ref: "menus"},
+  Idrestaurant: {type: Schema.ObjectId, ref: "restaurant"},
+  Idcliente : {type: Schema.ObjectId, ref: "cliente"},
+
+  ShippinAddress:{
     lon:String,
     lat:String
   },
-  pagototal : Number,
-  orden:[
+
+  Orden:[
     {
       id:ObjectId,
       cantidad:Number,
@@ -20,7 +21,7 @@ var ordenSchema = new Schema({
 
     }
   ],
-
+Pago_Total : Number,
 });
 var orden = mongoose.model("orden", ordenSchema);
 module.exports = orden;

@@ -516,72 +516,53 @@ router.put(/cliente\/[a-z0-9]{1,}$/, (req, res) => {
       return;
   });
 });
-router.post("/orden", (req, res) => {
+router.post("/orden",(req, res) => {
   //Ejemplo de validacion
   console.log(req.body);
-  /*if (req.body.idmenu == "" && req.body.idcliente== "") {
+  if (req.body.Idmenus == "" && req.body.Idcliente== "") {
     res.status(400).json({
       "msn" : "formato incorrecto"
     });
     return;
   }
-*/
 
-  var ordenData = new Orden(req.body);
+  var orden = {
+    Idmenus : req.body.Idmenus,
+    Idrestaurant: req.body.Idrestaurant,
+    Idcliente : req.body.Idcliente,
 
-  ordenData.save().then( () => {
+    ShippinAddress:{
+      lon:req.body.lon,
+      lat:req.body.lat
+    },
+
+    Orden:[
+      {
+        id: req.body.id,
+        cantidad:req.body.cantidad,
+        precio:req.body.precio
+
+      }
+    ],
+  Pago_Total : req.body.Pago_Total,
+  
+  };
+  var ordenData = new Orden(orden);
+
+  ordenData.save().then( (rr) => {
     //content-type
     res.status(200).json({
-      
-      "msn":"resgistrado con exito"
+      "id" : rr._id,
+      "msn" : "Mostrando con exito la orden"
     });
   });
+  });
+router.get("/orden", (req, res, next) =>{
+  Orden.find({}).exec((error, docs) => {
+    res.status(200).json(docs);
+  });
 });
-router.get("/orden", (req, res, next) => {
-  var params = req.query;
-  console.log(params);
-  var cantidad = params.cantidad;
-  var over = params.over;
 
-  if (cantidad == undefined && over == undefined) {
-    // filtra los datos que tengan en sus atributos lat y lon null;
-    Orden.find({lat: {$ne: null}, lon: {$ne: null}}).exec( (error, docs) => {
-      res.status(200).json(
-        {
-          info: docs
-        }
-      );
-    })
-    return;
-  }s
-  if (over == "equals") {
-    console.log("--------->>>>>>>")
-    Orden.find({cantidad:cantidad, lat: {$ne: null}, lon: {$ne: null}}).exec( (error, docs) => {
-      res.status(200).json(
-        {
-          info: docs
-        }
-      );
-    })
-    return;
-  } else if ( over == "true") {
-    Orden.find({cantidad: {$gt:cantidad}, lat: {$ne: null}, lon: {$ne: null}}).exec( (error, docs) => {
-      res.status(200).json(
-        {
-          info: docs
-        }
-      );
-    })
-  } else if (over == "false") {
-    Orden.find({cantidad: {$lt:cantidad}, lat: {$ne: null}, lon: {$ne: null}}).exec( (error, docs) => {
-      res.status(200).json(
-        {
-          info: docs
-        }
-      );
-    })
-  }
-});
 // Read only one user
 router.get(/orden\/[a-z0-9]{1,}$/, (req, res) => {
   var url = req.url;
