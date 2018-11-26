@@ -276,7 +276,7 @@ router.put(/restaurant\/[a-z0-9]{1,}$/, (req, res) => {
   var result = _.difference(oficialkeys, keys);
   if (result.length > 0) {
     res.status(400).json({
-      "msn" : "Existe un error en el formato de envio puede hacer uso del metodo patch si desea editar solo un fragmentode la informacion"
+      "msn" : "error nose puede  actualizar  utilice patch  para la actualizar"
     });
     return;
   }
@@ -322,7 +322,7 @@ router.post("/menus", (req, res) => {
     //content-type
     res.status(200).json({
       "id" : rr._id,
-      "msn" : "Mostrando menus con exito "
+      "msn" : " menu registrado con exito "
     });
   });
 });
@@ -386,7 +386,7 @@ router.put(/menus\/[a-z0-9]{1,}$/, (req, res) => {
   var result = _.difference(oficialkeys, keys);
   if (result.length > 0) {
     res.status(400).json({
-      "msn" : "Existe un error en el formato de envio puede hacer uso del metodo patch si desea editar solo un fragmentode la informacion"
+      "msn" : "nose puede actualizar error  utilice el formato patch"
     });
     return;
   }
@@ -493,7 +493,7 @@ router.put(/cliente\/[a-z0-9]{1,}$/, (req, res) => {
   var result = _.difference(oficialkeys, keys);
   if (result.length > 0) {
     res.status(400).json({
-      "msn" : "Existe un error en el formato de envio puede hacer uso del metodo patch si desea editar solo un fragmentode la informacion"
+      "msn" : "erorr no se puede actualizar intenten con patch"
     });
     return;
   }
@@ -640,7 +640,7 @@ router.put(/orden\/[a-z0-9]{1,}$/, (req, res) => {
   Orden.findOneAndUpdate({_id: id}, orden, (err, params) => {
       if(err) {
         res.status(500).json({
-          "msn": "Error no se pudo actualizar los datos"
+          "msn": "Error no se pudo actualizar los datos de la orden"
         });
         return;
       }
@@ -669,7 +669,7 @@ router.post("/users", (req, res) => {
   usersData.save().then( (rr) => {
     //content-type
     res.status(200).json({
-      "msn" : "uregistro exitoso con exito "
+      "msn" : "usuario registrado  con exito "
     });
   });
 });
@@ -728,26 +728,26 @@ router.put(/users\/[a-z0-9]{1,}$/, (req, res) => {
   var url = req.url;
   var id = url.split("/")[2];
   var keys  = Object.keys(req.body);
-  var oficialkeys = ['nombre', 'ci', 'email', 'password', 'telefono'];
+  var oficialkeys = ['Nombre', 'Ci', 'Email', 'Password', 'Telefono'];
   var result = _.difference(oficialkeys, keys);
   if (result.length > 0) {
     res.status(400).json({
-      "msn" : "Exiiste el usuario"
+      "msn" : "Existe el usuario"
     });
     return;
   }
 
   var users = {
-    nombre : req.body.nombre,
-    ci : req.body.ci,
-    email : req.body.gmail,
-    password: req.body.password,
-    telefono : req.body.telefono
+    Nombre : req.body.Nombre,
+    Ci : req.body.Ci,
+    Email : req.body.Email,
+    Password: req.body.Password,
+    Telefono : req.body.Telefono
   };
   Users.findOneAndUpdate({_id: id}, users, (err, params) => {
       if(err) {
         res.status(500).json({
-          "msn": "Error no se pudo actualizar los datos"
+          "msn": "Error no se pudo actualizar los datos del usuario"
         });
         return;
       }
