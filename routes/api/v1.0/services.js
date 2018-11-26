@@ -545,7 +545,7 @@ router.post("/orden",(req, res) => {
       }
     ],
   Pago_Total : req.body.Pago_Total,
-  
+
   };
   var ordenData = new Orden(orden);
 
@@ -658,19 +658,18 @@ router.post("/users", (req, res) => {
     return;
   }
   var users = {
-    nombre : req.body.nombre,
-    ci : req.body.ci,
-    email : req.body.email,
-    password: req.body.password,
-    telefono : req.body.telefono
+    Nombre : req.body.Nombre,
+    Ci : req.body.Ci,
+    Email : req.body.Email,
+    Password: req.body.Password,
+    Telefono : req.body.Telefono
   };
   var usersData = new Users(users);
 
   usersData.save().then( (rr) => {
     //content-type
     res.status(200).json({
-      "id" : rr._id,
-      "msn" : "registro exitoso con exito "
+      "msn" : "uregistro exitoso con exito "
     });
   });
 });

@@ -2,12 +2,12 @@ const mongoose = require("../connect");
 var mon = require('mongoose');
 var Schema = mon.Schema;
 var usersSchema = new Schema({
-    nombre: String,
-    ci: String,
-    email: String,
-    password: String,
-    telefono: Number,
-    fechaRegistro: {
+    Nombre: String,
+    Ci: String,
+    Email: String,
+    Password: String,
+    Telefono: Number,
+    Fecha_Registro: {
         type: Date,
         default: Date.now()
     },
