@@ -4,9 +4,10 @@ var Schema = mon.Schema;
 var usersSchema = new Schema({
     Nombre: String,
     Ci: String,
+    Telefono: Number,
     Email: String,
     Password: String,
-    Telefono: Number,
+    Tipo_Usuario : String,
     Fecha_Registro: {
         type: Date,
         default: Date.now()

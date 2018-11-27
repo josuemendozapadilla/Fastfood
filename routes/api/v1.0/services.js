@@ -152,21 +152,20 @@ router.get(/restaurantimg\/[a-z0-9]{1,}$/, (req, res) => {
 /*RESTAURANT*/
 router.post("/restaurant", (req, res) => {
   //Ejemplo de validacion
-  if (req.body.nombre == "" && req.body.nit == "") {
+  if (req.body.Nombre == "" && req.body.Nit == "") {
     res.status(400).json({
       "msn" : "Fallo de registro"
     });
     return;
   }
   var restaurant = {
-    nombre : req.body.nombre,
-    nit : req.body.nit,
-    propiedad : req.body.propiedad,
-    calle : req.body.calle,
-    telefono : req.body.telefono,
-    lat : req.body.lat,
-    lon : req.body.lon,
-    fotolugar : req.body.foto
+    Nombre : req.body.Nombre,
+    Nit : req.body.Nit,
+    Propiedad : req.body.Propiedad,
+    Calle : req.body.Calle,
+    Telefono : req.body.Telefono,
+    Lat : req.body.Lat,
+    Lon : req.body.Lon
   };
   var restaurantData = new Restaurant(restaurant);
 
@@ -181,12 +180,12 @@ router.post("/restaurant", (req, res) => {
 router.get("/restaurant", (req, res, next) => {
   var params = req.query;
   console.log(params);
-  var propiedad = params.propiedad;
+  var Propiedad = params.Propiedad;
   var over = params.over;
 
-  if (propiedad == undefined && over == undefined) {
+  if (Propiedad == undefined && over == undefined) {
     // filtra los datos que tengan en sus atributos lat y lon null;
-    Restaurant.find({lat: {$ne: null}, lon: {$ne: null}}).exec( (error, docs) => {
+    Restaurant.find({Lat: {$ne: null}, Lon: {$ne: null}}).exec( (error, docs) => {
       res.status(200).json(
         {
           info: docs
@@ -197,7 +196,7 @@ router.get("/restaurant", (req, res, next) => {
   }
   if (over == "equals") {
     console.log("--------->>>>>>>")
-    Restaurant.find({propiedad:propiedad, lat: {$ne: null}, lon: {$ne: null}}).exec( (error, docs) => {
+    Restaurant.find({Propiedad:Propiedad, Lat: {$ne: null}, Lon: {$ne: null}}).exec( (error, docs) => {
       res.status(200).json(
         {
           info: docs
@@ -206,7 +205,7 @@ router.get("/restaurant", (req, res, next) => {
     })
     return;
   } else if ( over == "true") {
-    Restaurant.find({propiedad: {$gt:propiedad}, lat: {$ne: null}, lon: {$ne: null}}).exec( (error, docs) => {
+    Restaurant.find({Propiedad: {$gt:Propiedad}, Lat: {$ne: null}, Lon: {$ne: null}}).exec( (error, docs) => {
       res.status(200).json(
         {
           info: docs
@@ -214,7 +213,7 @@ router.get("/restaurant", (req, res, next) => {
       );
     })
   } else if (over == "false") {
-    Restaurant.find({propiedad: {$lt:propiedad}, lat: {$ne: null}, lon: {$ne: null}}).exec( (error, docs) => {
+    Restaurant.find({Propiedad: {$lt:Propiedad}, Lat: {$ne: null}, Lon: {$ne: null}}).exec( (error, docs) => {
       res.status(200).json(
         {
           info: docs
@@ -223,7 +222,7 @@ router.get("/restaurant", (req, res, next) => {
     })
   }
 });
-// Read only one user
+//mostrar  por id los restaurant
 router.get(/restaurant\/[a-z0-9]{1,}$/, (req, res) => {
   var url = req.url;
   var id = url.split("/")[2];
@@ -272,7 +271,7 @@ router.put(/restaurant\/[a-z0-9]{1,}$/, (req, res) => {
   var url = req.url;
   var id = url.split("/")[2];
   var keys  = Object.keys(req.body);
-  var oficialkeys = ['nombre', 'nit', 'propiedad', 'calle', 'telefono', 'lat', 'lon'];
+  var oficialkeys = ['Nombre', 'Nit', 'Propiedad', 'Calle', 'Telefono', 'Lat', 'Lon'];
   var result = _.difference(oficialkeys, keys);
   if (result.length > 0) {
     res.status(400).json({
@@ -282,13 +281,13 @@ router.put(/restaurant\/[a-z0-9]{1,}$/, (req, res) => {
   }
 
   var restaurant = {
-    nombre : req.body.nombre,
-    nit : req.body.nit,
-    propiedad : req.body.propiedad,
-    calle : req.body.calle,
-    telefono : req.body.telefono,
-    lat : req.body.lat,
-    lon : req.body.lon
+    Nombre : req.body.Nombre,
+    Nit : req.body.Nit,
+    Propiedad : req.body.Propiedad,
+    Calle : req.body.Calle,
+    Telefono : req.body.Telefono,
+    Lat : req.body.Lat,
+    Lon : req.body.Lon
 
   };
   Restaurant.findOneAndUpdate({_id: id}, restaurant, (err, params) => {
@@ -466,7 +465,7 @@ router.delete(/cliente\/[a-z0-9]{1,}$/, (req, res) => {
 //Actualizar solo x elementos
 router.patch(/cliente\/[a-z0-9]{1,}$/, (req, res) => {
   var url = req.url;
-  var id = url.split("/")[2];
+  var id = url.split( "/")[2];
   var keys = Object.keys(req.body);
   var menus = {};
   for (var i = 0; i < keys.length; i++) {
@@ -648,37 +647,37 @@ router.put(/orden\/[a-z0-9]{1,}$/, (req, res) => {
       return;
   });
 });
-
+//insertar un nuevo usuario en la  base de datos
 router.post("/users", (req, res) => {
-  //Ejemplo de validacion
-  if (req.body.nombre == "" && req.body.ci == "") {
+  if (req.body.Nombre == "" && req.body.Ci == "") {
     res.status(400).json({
       "msn" : "formato incorrecto"
     });
     return;
   }
   var users = {
-    Nombre : req.body.Nombre,
-    Ci : req.body.Ci,
-    Email : req.body.Email,
+    Nombre: req.body.Nombre,
+    Ci: req.body.Ci,
+    Telefono: req.body.Telefono,
+    Email: req.body.Email,
     Password: req.body.Password,
-    Telefono : req.body.Telefono
+    Tipo_Usuario : req.body.Tipo_Usuario,
   };
   var usersData = new Users(users);
 
   usersData.save().then( (rr) => {
-    //content-type
     res.status(200).json({
       "msn" : "usuario registrado  con exito "
     });
   });
 });
+//muestra todos los usuarios existente de la tabla
 router.get("/users", (req, res, next) =>{
   Users.find({}).exec((error, docs) => {
     res.status(200).json(docs);
   });
 });
-
+//muestra los usuarios por su id
 router.get(/users\/[a-z0-9]{1,}$/, (req, res) => {
   var url = req.url;
   var id = url.split("/")[2];
@@ -691,10 +690,10 @@ router.get(/users\/[a-z0-9]{1,}$/, (req, res) => {
     res.status(200).json({
       "msn" : "No existe el usuario "
     });
-  })
+  });
 });
 
-//elimina un restaurant
+//elimina  usuario
 router.delete(/users\/[a-z0-9]{1,}$/, (req, res) => {
   var url = req.url;
   var id = url.split("/")[2];
@@ -723,12 +722,12 @@ router.patch(/users\/[a-z0-9]{1,}$/, (req, res) => {
       return;
   });
 });
-//Actualiza los datos del restaurant
+//Actualiza los datos del Usuario
 router.put(/users\/[a-z0-9]{1,}$/, (req, res) => {
   var url = req.url;
   var id = url.split("/")[2];
   var keys  = Object.keys(req.body);
-  var oficialkeys = ['Nombre', 'Ci', 'Email', 'Password', 'Telefono'];
+  var oficialkeys = ['Nombre', 'Ci', 'Telefono', 'Email', 'Password', 'Tipo_Usuario'];
   var result = _.difference(oficialkeys, keys);
   if (result.length > 0) {
     res.status(400).json({
@@ -738,11 +737,12 @@ router.put(/users\/[a-z0-9]{1,}$/, (req, res) => {
   }
 
   var users = {
-    Nombre : req.body.Nombre,
-    Ci : req.body.Ci,
-    Email : req.body.Email,
+    Nombre: req.body.Nombre,
+    Ci: req.body.Ci,
+    Telefono: req.body.Telefono,
+    Email: req.body.Email,
     Password: req.body.Password,
-    Telefono : req.body.Telefono
+    Tipo_Usuario : req.body.Tipo_Usuario,
   };
   Users.findOneAndUpdate({_id: id}, users, (err, params) => {
       if(err) {
