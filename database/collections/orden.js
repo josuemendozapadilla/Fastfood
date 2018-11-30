@@ -1,27 +1,35 @@
 const mongoose = require("../connect");
-var mon = require('mongoose');
-var ObjectId = mongoose.Schema.Types.ObjectId;
-var Schema = mon.Schema;
-var ordenSchema = new Schema({
+//var ObjectId = mongoose.Schema.Types.ObjectId;
+//var Schema = mon.Schema;
+const Schema = mongoose.Schema;
+const ordenSchema = new Schema({
 
-  Idmenus : {type: Schema.ObjectId, ref: "menus"},
-  Idrestaurant: {type: Schema.ObjectId, ref: "restaurant"},
-  Idcliente : {type: Schema.ObjectId, ref: "cliente"},
-
-  ShippinAddress:{
-    lon:String,
-    lat:String
+  //Idmenus : {type: Schema.ObjectId, ref: "menus"},
+  //Idrestaurant: {type: Schema.ObjectId, ref: "restaurant"},
+  //Idcliente : {type: Schema.ObjectId, ref: "cliente"},
+Cliente: {
+  type: Schema.Types.ObjectId,
+  ref: "Users"
+},
+  Lugar_Envio: [Number],
+  Restaurant:{
+    type: Schema.Types.ObjectId,
+    ref: "Restaurant"
   },
-
-  Orden:[
+  Menus : [{
+    type: Schema.Types.ObjectId,
+    ref: "Menus"
+  }],
+  Precios : Number,
+  Cantidad : [Number],
+  Fecha_Registro:
     {
-      id:ObjectId,
-      cantidad:Number,
-      precio:Number
+      type:Date,
+      default: Date.now()
 
-    }
-  ],
+    },
+
 Pago_Total : Number,
 });
-var orden = mongoose.model("orden", ordenSchema);
+const orden = mongoose.model("Orden", ordenSchema);
 module.exports = orden;

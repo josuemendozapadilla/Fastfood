@@ -3,8 +3,11 @@ var mon = require('mongoose');
 var Schema = mon.Schema;
 var restaurantSchema = new Schema({
   Nombre : String,
-  Nit : Number,
-  Propiedad : String,
+  Nit : String,
+  Propiedad : {
+    type: Schema.Types.ObjectId,
+    ref: "Users"
+  },
   Calle : String,
   Telefono : Number,
   Lat : Number,
@@ -12,7 +15,7 @@ var restaurantSchema = new Schema({
   Fecha_Registro: {
     type: Date, default: Date.now
   },
-  Foto_Lugar : Array
+  Foto_Lugar : String
 });
-var restaurant = mongoose.model("restaurant", restaurantSchema);
+var restaurant = mongoose.model("Restaurant", restaurantSchema);
 module.exports = restaurant;

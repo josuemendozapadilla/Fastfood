@@ -5,11 +5,11 @@ var fs = require('fs');
 var _ = require("underscore");
 
 var Img = require("../../../database/collections/img");
-var Menus = require("../../../database/collections/menus");
-var Orden = require("../../../database/collections/orden");
-var Restaurant = require("../../../database/collections/restaurant");
+const Menus = require("../../../database/collections/menus");
+const Orden = require("../../../database/collections/orden");
+const Restaurant = require("../../../database/collections/restaurant");
 var Cliente = require("../../../database/collections/cliente");
-var Users = require("../../../database/collections/users");
+const Users = require("../../../database/collections/users");
 var jwt = require("jsonwebtoken");
 
 
@@ -29,9 +29,9 @@ var upload = multer({
 Login USER
 */
 router.post("/login", (req, res, next) => {
-  var nombre = req.body.nombre;
-  var password = req.body.password;
-  var result = Users.findOne({nombre: nombre,password: password}).exec((err, doc) => {
+  var Nombre = req.body.Nombre;
+  var Password = req.body.Password;
+  var result = Users.findOne({Nombre: Nombre,Password: Password}).exec((err, doc) => {
     if (err) {
       res.status(200).json({
         msn : "No se puede concretar con la peticion "
@@ -40,7 +40,7 @@ router.post("/login", (req, res, next) => {
     }
     if (doc) {
       //res.status(200).json(doc);
-      jwt.sign({nombre: doc.nombre, password: doc.password}, "secretkey123", (err, token) => {
+      jwt.sign({Nombre: doc.Nombre, Password: doc.Password}, "secretkey123", (err, token) => {
           console.log(err);
           res.status(200).json({
             token : token
@@ -301,28 +301,34 @@ router.put(/restaurant\/[a-z0-9]{1,}$/, (req, res) => {
       return;
   });
 });
-router.post("/menus", (req, res) => {
+router.post("/menus", function(req, res, next) {
   //Ejemplo de validacion
-  if (req.body.nombre == "" && req.body.precio == "") {
+  /*if (req.body.nombre == "" && req.body.precio == "") {
     res.status(400).json({
       "msn" : " Error al registrar"
     });
     return;
-  }
-  var menus = {
-    nombre : req.body.nombre,
-    precio : req.body.precio,
-    descripcion : req.body.descripcion,
-    fotodelproducto : req.body.fotodelproducto
-  };
-  var menusData = new Menus(menus);
+  }*/
+  const datos = {
+    Nombre : req.body.Nombre,
+    Telefono : req.body.Telefono,
+    Ci  : req.body.Ci,
+    Descripcion : req.body.Descripcion,
+    Restaurant : req.body.Restaurant,
+    Precio : req.body.Precio
 
-  menusData.save().then( (rr) => {
-    //content-type
-    res.status(200).json({
-      "id" : rr._id,
-      "msn" : " menu registrado con exito "
+  };
+  var modelMenus = new Menus(datos);
+
+  modelMenus.save().then( result => {
+    res.json({
+      message: "usuario registrado  con exito "
     });
+  })
+  .catch(err => {
+    res.status(500).json({
+        erroikr: err
+    })
   });
 });
 router.get("/menus", (req, res, next) =>{
@@ -515,47 +521,44 @@ router.put(/cliente\/[a-z0-9]{1,}$/, (req, res) => {
       return;
   });
 });
-router.post("/orden",(req, res) => {
-  //Ejemplo de validacion
-  console.log(req.body);
-  if (req.body.Idmenus == "" && req.body.Idcliente== "") {
-    res.status(400).json({
-      "msn" : "formato incorrecto"
-    });
-    return;
-  }
+router.post('/orden', function (req, res, next) {
+const datos = {
+        Cliente: req.body.Cliente,
+        Lugar_Envio: req.body.Lugar_Envio,
+        Restaurant: req.body.Restaurant,
+        Menus: req.body.Menus,
+    };
 
-  var orden = {
-    Idmenus : req.body.Idmenus,
-    Idrestaurant: req.body.Idrestaurant,
-    Idcliente : req.body.Idcliente,
+    let Precios = req.body.Precios;
+    let Cantidad = req.body.Cantidad;
+    let pagoTotal = 0;
 
-    ShippinAddress:{
-      lon:req.body.lon,
-      lat:req.body.lat
-    },
+    if (Array.isArray(Cantidad) && Array.isArray(Precios)) {
+        for (let index = 0; index < Precios.length; index++) {
+            Pago_Total += +Precios[index] * +Cantidad[index];
+            console.log(Cantidad[index]);
+        };
+    } else {
+        Pago_Total = +Cantidad * +Precios
+    }
+    //console.log(precios);
+    datos.Cantidad = Cantidad;
+    datos.Pago_Total = Pago_Total;
+    //console.log(pagoTotal);
 
-    Orden:[
-      {
-        id: req.body.id,
-        cantidad:req.body.cantidad,
-        precio:req.body.precio
+    var modelOrden = new Orden(datos);
+    modelOrden.save()
+        .then(result => {
+            res.json({
+                message: "Orden insertado en la bd"
+            })
+        }).catch(err => {
+            res.status(500).json({
+                error: err
+            })
+        });
 
-      }
-    ],
-  Pago_Total : req.body.Pago_Total,
-
-  };
-  var ordenData = new Orden(orden);
-
-  ordenData.save().then( (rr) => {
-    //content-type
-    res.status(200).json({
-      "id" : rr._id,
-      "msn" : "Mostrando con exito la orden"
-    });
-  });
-  });
+});
 router.get("/orden", (req, res, next) =>{
   Orden.find({}).exec((error, docs) => {
     res.status(200).json(docs);
@@ -648,27 +651,28 @@ router.put(/orden\/[a-z0-9]{1,}$/, (req, res) => {
   });
 });
 //insertar un nuevo usuario en la  base de datos
-router.post('/', function(req, res, next) {
-
-
+router.post('/users', function(req, res, next) {//definimos el nombre en plural
+//el detalles era que no definiste la ruta como tal...osea ya esta ahora  no tengo problkemas para tabajar
+//che man  solucionalo esta lo mismo que  isiste no  hay errror
+//que parte?
   const datos = {
     Nombre: req.body.Nombre,
     Ci: req.body.Ci,
     Telefono: req.body.Telefono,
     Email: req.body.Email,
     Password: req.body.Password,
-    Tipo_Usuario : req.body.Tipo_Usuario,
+    Tipo_Usuario : req.body.Tipo_Usuario
   };
   var modelUsers = new Users(datos);
 
   modelUsers.save().then( result => {
     res.json({
-      "msn" : "usuario registrado  con exito "
+      message: "usuario registrado  con exito "
     });
   })
   .catch(err => {
     res.status(500).json({
-        error: err
+        erroikr: err
     })
   });
 });
@@ -757,4 +761,145 @@ router.put(/users\/[a-z0-9]{1,}$/, (req, res) => {
   });
 });
 
+
+
+
+/*const PDFDocument = require('pdfkit');
+const fs = require('fs');
+router.get('/facturas/:id', function (req, res, next) {
+
+    /*var html = '<div id="pageHeader">Default header</div>'+
+    '<div id="pageHeader-first">Header on first page</div>'+
+    '<div id="pageHeader-2">Header on second page</div>'+
+    '<div id="pageHeader-3">Header on third page</div>'+
+    '<div id="pageHeader-last">Header on last page</div>'+
+
+    var footer = '<div id="pageFooter">Default footer</div>'+
+    '<div id="pageFooter-first">Footer on first page</div>'+
+    '<div id="pageFooter-2">Footer on second page</div>'+
+    '<div id="pageFooter-last">Footer on last page</div>'
+
+    Orden.findById(req.params.id).populate('restaurant').populate('menus').populate('cliente').exec()
+        .then(doc => {
+
+            // Create a document
+
+            pdf = new PDFDocument
+
+            let idOrden = req.params.id
+            pdf.pipe(fs.createWriteStream(idOrden + '.pdf'));
+
+
+
+            // Add another page
+            pdf.addPage()
+                .fontSize(25)
+                .text('Id de Factura : ' + idOrden, 100, 100)
+
+                .moveDown()
+            pdf.text('Nombre o Razon Social ' + doc.cliente.nombre, {
+                width: 412,
+                align: 'left'
+            })
+
+
+
+            pdf.moveDown()
+            pdf.text('Correo electronico : ' + doc.cliente.email, {
+                width: 412,
+                align: 'left'
+            })
+            pdf.moveDown()
+            pdf.text('Cedula de Indentidad ' + doc.cliente.ci, {
+                width: 412,
+                align: 'left'
+            })
+            pdf.moveDown()
+            pdf.text('Telefono :  ' + doc.cliente.nombre, {
+                width: 412,
+                align: 'left'
+            })
+            pdf.moveDown()
+
+
+
+            pdf.text('DETALLE DE PEDIDO' + doc.cliente.nombre, {
+                width: 412,
+                align: 'center'
+            })
+            pdf.moveDown()
+            pdf.text('Restaurant : ' + doc.restaurant.nombre, {
+                width: 412,
+                align: 'left'
+            })
+            pdf.moveDown()
+            pdf.text('NIT : ' + doc.restaurant.nit, {
+                width: 412,
+                align: 'left'
+            })
+            pdf.moveDown()
+            pdf.text('Direccion : ' + doc.restaurant.calle, {
+                width: 412,
+                align: 'left'
+            })
+            pdf.moveDown()
+            pdf.text('Telefono : ' + doc.restaurant.telefono, {
+                width: 412,
+                align: 'left'
+            })
+
+
+            pdf.moveDown()
+            pdf.text('Nombre ----------- Precio ', {
+                width: 412,
+                align: 'left'
+            })
+            pdf.moveDown()
+
+            for (let index = 0; index < doc.menus.length; index++) {
+
+                pdf.text(doc.menus[index].nombre + '-------' + doc.menus[index].precio + '------- ' + doc.cantidad[index], {
+                    width: 412,
+                    align: 'left'
+                })
+                pdf.moveDown()
+            }
+
+            pdf.text('Total :  ' + doc.pagoTotal, {
+                width: 412,
+                align: 'center'
+            })
+            pdf.moveDown()
+
+
+
+            pdf.text('Fecha de venta : ' + doc.fechaRegistro.toString(), {
+                width: 412,
+                align: 'center'
+            })
+            pdf.moveDown()
+
+
+
+            // Finalize PDF file
+            pdf.end()
+
+
+
+            //pdf.pipe(res.status(201));
+
+            res.status(500).json(doc);
+
+            //enviar el pdf al correo del cliente .
+        }).catch(err => {
+            res.status(500).json({
+                error: err
+            });
+        });
+
+
+    //doc.pipe(res.status(201));
+})
+
+*/
 module.exports = router;
