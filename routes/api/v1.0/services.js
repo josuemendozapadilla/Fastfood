@@ -5,8 +5,8 @@ var fs = require('fs');
 var _ = require("underscore");
 
 var Img = require("../../../database/collections/img");
-var Menus = require("../../../database/collections/menus");
-var Orden = require("../../../database/collections/orden");
+var Menus = require("../../../database/collections/../../database/collections/menus");
+const Orden = require("../../../database/collections/../../database/collections/orden");
 var Restaurant = require("../../../database/collections/../../database/collections/restaurant");
 var Cliente = require("../../../database/collections/../../database/collections/cliente");
 var Users = require("../../../database/collections/../../database/collections/users");
@@ -239,7 +239,7 @@ router.put(/restaurant\/[a-z0-9]{1,}$/, (req, res) => {
   var url = req.url;
   var id = url.split("/")[2];
   var keys  = Object.keys(req.body);
-  var oficialkeys = ['Nombre', 'Nit', 'Propiedad', 'Calle', 'Telefono', 'Lat', 'Lon'];
+  var oficialkeys = ['nombre', 'nit', 'propiedad', 'calle', 'telefono', 'lat', 'lon'];
   var result = _.difference(oficialkeys, keys);
   if (result.length > 0) {
     res.status(400).json({
@@ -249,13 +249,13 @@ router.put(/restaurant\/[a-z0-9]{1,}$/, (req, res) => {
   }
 
   var restaurant = {
-    Nombre : req.body.Nombre,
-    Nit : req.body.Nit,
-    Propiedad : req.body.Propiedad,
-    Calle : req.body.Calle,
-    Telefono : req.body.Telefono,
-    Lat : req.body.Lat,
-    Lon : req.body.Lon
+    nombre : req.body.Nombre,
+    nit : req.body.Nit,
+    propiedad : req.body.Propiedad,
+    calle : req.body.Calle,
+    telefono : req.body.Telefono,
+    lat : req.body.Lat,
+    lon : req.body.Lon
 
   };
   Restaurant.findOneAndUpdate({_id: id}, restaurant, (err, params) => {
@@ -269,26 +269,23 @@ router.put(/restaurant\/[a-z0-9]{1,}$/, (req, res) => {
       return;
   });
 });
-router.post('/menus', function(req, res, next) {
-  const datos = {
-        restaurant : res.body.restaurant,
-        nombre : res.body.nombre,
-        precio : res.body.precio,
-        descripcion : req.body.descripcion
-  };
-  var modelMenus = new Menus(datos);
+/*RESTAURANT*/
+router.post("/menus", verifytoken, (req, res) => {
 
-  modelMenus.save().then( result => {
-    res.json({
-      message: "menu registrado  con exito "
+  //Ejemplo de validacion
+  var data = req.body;
+  data ["registerdate"] = new Date();
+  var newmenus = new Menus(data);
+  newmenus.save().then((rr) =>{
+    res.status(200).json({
+      "resp": 200,
+      "dato": newmenus,
+      "id" : rr._id,
+      "msn" :  "menu  agregado con exito"
     });
-  })
-  .catch(err => {
-    res.status(500).json({
-        erroikr: err
-    })
   });
 });
+
 router.get("/menus",(req, res) => {
   var skip = 0;
   var limit = 10;
@@ -335,24 +332,39 @@ router.delete(/menus\/[a-z0-9]{1,}$/, (req, res) => {
   });
 });
 //Actualizar solo x elementos
-router.patch(/menus\/[a-z0-9]{1,}$/, (req, res) => {
-  var url = req.url;
-  var id = url.split("/")[2];
-  var keys = Object.keys(req.body);
-  var menus = {};
-  for (var i = 0; i < keys.length; i++) {
-    menus[keys[i]] = req.body[keys[i]];
+
+router.patch("/menus",(req, res) => {
+  var params = req.body;
+  var id = req.query.id;
+  //Collection of data
+  var keys = Object.keys(params);
+  var updatekeys = ["nombre", "precio", "descripcion", "foto"];
+  var newkeys = [];
+  var values = [];
+  //seguridad
+  for (var i  = 0; i < updatekeys.length; i++) {
+    var index = keys.indexOf(updatekeys[i]);
+    if (index != -1) {
+        newkeys.push(keys[index]);
+        values.push(params[keys[index]]);
+    }
   }
-  console.log(menus);
-  Menus.findOneAndUpdate({_id: id}, menus, (err, params) => {
-      if(err) {
-        res.status(500).json({
-          "msn": "No se pudo actualizar los datos"
-        });
-        return;
-      }
-      res.status(200).json(params);
+  var objupdate = {}
+  for (var i  = 0; i < newkeys.length; i++) {
+      objupdate[newkeys[i]] = values[i];
+  }
+  console.log(objupdate);
+  Menus.findOneAndUpdate({_id: id}, objupdate ,(err, docs) => {
+    if (err) {
+      res.status(500).json({
+          msn: "Existe un error en la base de datos"
+      });
       return;
+    }
+    var id = docs._id
+    res.status(200).json({
+      msn: id
+    })
   });
 });
 //Actualiza los datos del restaurant
@@ -370,9 +382,11 @@ router.put(/menus\/[a-z0-9]{1,}$/, (req, res) => {
   }
 
   var menus = {
+    restaurant : req.body.restaurant,
     nombre : req.body.nombre,
     precio : req.body.precio,
-    descripcion : req.body.descripcion
+    descripcion : req.body.descripcion,
+    foto : req.body.foto
 
   };
   Menus.findOneAndUpdate({_id: id}, menus, (err, params) => {
@@ -451,7 +465,7 @@ router.patch(/cliente\/[a-z0-9]{1,}$/, (req, res) => {
   var url = req.url;
   var id = url.split( "/")[2];
   var keys = Object.keys(req.body);
-  var menus = {};
+  var cliente = {};
   for (var i = 0; i < keys.length; i++) {
     cliente[keys[i]] = req.body[keys[i]];
   }
@@ -480,13 +494,12 @@ router.put(/cliente\/[a-z0-9]{1,}$/, (req, res) => {
     });
     return;
   }
-
   var cliente = {
     nombre : req.body.nombre,
-    apellido : req.body.apellido,
     ci : req.body.ci,
     telefono : req.body.telefono,
-    gmail : req.body.gmail
+    email : req.body.email,
+    password : req.body.password
   };
   Cliente.findOneAndUpdate({_id: id}, cliente, (err, params) => {
       if(err) {
@@ -501,27 +514,27 @@ router.put(/cliente\/[a-z0-9]{1,}$/, (req, res) => {
 });
 router.post('/orden', function (req, res, next) {
 const datos = {
-        Cliente: req.body.Cliente,
-        Lugar_Envio: req.body.Lugar_Envio,
-        Restaurant: req.body.Restaurant,
-        Menus: req.body.Menus,
+        cliente: req.body.cliente,
+        restaurant: req.body.restaurant,
+        menus: req.body.Menus,
+        lugar_envio: req.body.lugar_envio,
     };
 
-    let Precios = req.body.Precios;
-    let Cantidad = req.body.Cantidad;
+    let precios = req.body.Precios;
+    let cantidad = req.body.Cantidad;
     let pagoTotal = 0;
 
-    if (Array.isArray(Cantidad) && Array.isArray(Precios)) {
-        for (let index = 0; index < Precios.length; index++) {
-            Pago_Total += +Precios[index] * +Cantidad[index];
-            console.log(Cantidad[index]);
+    if (Array.isArray(cantidad) && Array.isArray(precios)) {
+        for (let index = 0; index < precios.length; index++) {
+            pago_total += +precios[index] * +cantidad[index];
+            console.log(cantidad[index]);
         };
     } else {
-        Pago_Total = +Cantidad * +Precios
+        pago_total = +cantidad * +precios
     }
     //console.log(precios);
-    datos.Cantidad = Cantidad;
-    datos.Pago_Total = Pago_Total;
+    datos.cantidad = cantidad;
+    datos.pago_=total = pago_total;
     //console.log(pagoTotal);
 
     var modelOrden = new Orden(datos);

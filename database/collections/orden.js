@@ -1,5 +1,5 @@
 const mongoose = require("../connect");
-var ObjectId = mongoose.Schema.Types.ObjectId;
+//var ObjectId = mongoose.Schema.Types.ObjectId;
 const Schema = mongoose.Schema;
 
 const ordenSchema = new Schema({
@@ -9,9 +9,9 @@ const ordenSchema = new Schema({
   //Idcliente : {type: Schema.ObjectId, ref: "cliente"},
 cliente: {
   type: Schema.Types.ObjectId,
-  ref: "Users"
+  ref: "Cliente"
 },
-  lugar_envio: [Number],
+
   restaurant:{
     type: Schema.Types.ObjectId,
     ref: "Restaurant"
@@ -20,6 +20,7 @@ cliente: {
     type: Schema.Types.ObjectId,
     ref: "Menus"
   }],
+  lugar_envio: [Number],
   precios : Number,
   cantidad : [Number],
   Fecha_Registro:
