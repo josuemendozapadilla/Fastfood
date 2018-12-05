@@ -5,11 +5,11 @@ var fs = require('fs');
 var _ = require("underscore");
 
 var Img = require("../../../database/collections/img");
-const Menus = require("../../../database/collections/menus");
-const Orden = require("../../../database/collections/orden");
-const Restaurant = require("../../../database/collections/restaurant");
-var Cliente = require("../../../database/collections/cliente");
-const Users = require("../../../database/collections/users");
+var Menus = require("../../../database/collections/menus");
+var Orden = require("../../../database/collections/orden");
+var Restaurant = require("../../../database/collections/../../database/collections/restaurant");
+var Cliente = require("../../../database/collections/../../database/collections/cliente");
+var Users = require("../../../database/collections/../../database/collections/users");
 var jwt = require("jsonwebtoken");
 
 
@@ -29,21 +29,23 @@ var upload = multer({
 Login USER
 */
 router.post("/login", (req, res, next) => {
-  var Nombre = req.body.Nombre;
-  var Password = req.body.Password;
-  var result = Users.findOne({Nombre: Nombre,Password: Password}).exec((err, doc) => {
+  var email = req.body.email;
+  var password = req.body.password;
+  var result = Cliente.findOne({email: email,password: password}).exec((err, doc) => {
     if (err) {
-      res.status(200).json({
+      res.status(300).json({
         msn : "No se puede concretar con la peticion "
       });
       return;
     }
     if (doc) {
       //res.status(200).json(doc);
-      jwt.sign({Nombre: doc.Nombre, Password: doc.Password}, "secretkey123", (err, token) => {
+      jwt.sign({name: doc.email, password: doc.password}, "secretkey123", (err, token) => {
           console.log(err);
           res.status(200).json({
-            token : token
+            resp:200,
+            token : token,
+            dato:result
           });
       })
     } else {
@@ -150,78 +152,44 @@ router.get(/restaurantimg\/[a-z0-9]{1,}$/, (req, res) => {
 });
 
 /*RESTAURANT*/
-router.post("/restaurant", (req, res) => {
-  //Ejemplo de validacion
-  if (req.body.Nombre == "" && req.body.Nit == "") {
-    res.status(400).json({
-      "msn" : "Fallo de registro"
-    });
-    return;
-  }
-  var restaurant = {
-    Nombre : req.body.Nombre,
-    Nit : req.body.Nit,
-    Propiedad : req.body.Propiedad,
-    Calle : req.body.Calle,
-    Telefono : req.body.Telefono,
-    Lat : req.body.Lat,
-    Lon : req.body.Lon
-  };
-  var restaurantData = new Restaurant(restaurant);
+router.post("/restaurant", verifytoken, (req, res) => {
 
-  restaurantData.save().then( (rr) => {
-    //content-type
+  //Ejemplo de validacion
+  var data = req.body;
+  data ["registerdate"] = new Date();
+  var newrestaurant = new Restaurant(data);
+  newrestaurant.save().then((rr) =>{
     res.status(200).json({
+      "resp": 200,
+      "dato": newrestaurant,
       "id" : rr._id,
-      "msn" : "restaurant Registrado con exito "
+      "msn" :  "restaurante agregado con exito"
     });
   });
 });
-router.get("/restaurant", (req, res, next) => {
-  var params = req.query;
-  console.log(params);
-  var Propiedad = params.Propiedad;
-  var over = params.over;
+router.get("/restaurant",(req, res) => {
+  var skip = 0;
+  var limit = 10;
+  if (req.query.skip != null) {
+    skip = req.query.skip;
+  }
 
-  if (Propiedad == undefined && over == undefined) {
-    // filtra los datos que tengan en sus atributos lat y lon null;
-    Restaurant.find({Lat: {$ne: null}, Lon: {$ne: null}}).exec( (error, docs) => {
-      res.status(200).json(
-        {
-          info: docs
-        }
-      );
-    })
-    return;
+  if (req.query.limit != null) {
+    limit = req.query.limit;
   }
-  if (over == "equals") {
-    console.log("--------->>>>>>>")
-    Restaurant.find({Propiedad:Propiedad, Lat: {$ne: null}, Lon: {$ne: null}}).exec( (error, docs) => {
-      res.status(200).json(
-        {
-          info: docs
-        }
-      );
-    })
-    return;
-  } else if ( over == "true") {
-    Restaurant.find({Propiedad: {$gt:Propiedad}, Lat: {$ne: null}, Lon: {$ne: null}}).exec( (error, docs) => {
-      res.status(200).json(
-        {
-          info: docs
-        }
-      );
-    })
-  } else if (over == "false") {
-    Restaurant.find({Propiedad: {$lt:Propiedad}, Lat: {$ne: null}, Lon: {$ne: null}}).exec( (error, docs) => {
-      res.status(200).json(
-        {
-          info: docs
-        }
-      );
-    })
-  }
+  Restaurant.find({}).skip(skip).limit(limit).exec((err, docs) => {
+    if (err) {
+      res.status(500).json({
+        "msn" : "Error en la db"
+      });
+      return;
+    }
+    res.status(200).json(docs);
+  });
 });
+
+
+
 //mostrar  por id los restaurant
 router.get(/restaurant\/[a-z0-9]{1,}$/, (req, res) => {
   var url = req.url;
@@ -301,28 +269,18 @@ router.put(/restaurant\/[a-z0-9]{1,}$/, (req, res) => {
       return;
   });
 });
-router.post("/menus", function(req, res, next) {
-  //Ejemplo de validacion
-  /*if (req.body.nombre == "" && req.body.precio == "") {
-    res.status(400).json({
-      "msn" : " Error al registrar"
-    });
-    return;
-  }*/
+router.post('/menus', function(req, res, next) {
   const datos = {
-    Nombre : req.body.Nombre,
-    Telefono : req.body.Telefono,
-    Ci  : req.body.Ci,
-    Descripcion : req.body.Descripcion,
-    Restaurant : req.body.Restaurant,
-    Precio : req.body.Precio
-
+        restaurant : res.body.restaurant,
+        nombre : res.body.nombre,
+        precio : res.body.precio,
+        descripcion : req.body.descripcion
   };
   var modelMenus = new Menus(datos);
 
   modelMenus.save().then( result => {
     res.json({
-      message: "usuario registrado  con exito "
+      message: "menu registrado  con exito "
     });
   })
   .catch(err => {
@@ -331,9 +289,23 @@ router.post("/menus", function(req, res, next) {
     })
   });
 });
-router.get("/menus", (req, res, next) =>{
-  var me
-  Menus.find({}).exec((error, docs) => {
+router.get("/menus",(req, res) => {
+  var skip = 0;
+  var limit = 10;
+  if (req.query.skip != null) {
+    skip = req.query.skip;
+  }
+
+  if (req.query.limit != null) {
+    limit = req.query.limit;
+  }
+  Menus.find({}).skip(skip).limit(limit).exec((err, docs) => {
+    if (err) {
+      res.status(500).json({
+        "msn" : "Error en la db"
+      });
+      return;
+    }
     res.status(200).json(docs);
   });
 });
@@ -347,7 +319,8 @@ router.get(/menus\/[a-z0-9]{1,}$/, (req, res) => {
         return;
     }
 
-    res.status(200).json({
+    res.status(400).json({
+      "respuesta":400,
       "msn" : "No existe el recurso seleccionado "
     });
   })
@@ -424,10 +397,10 @@ router.post("/cliente", (req, res) => {
   }
   var cliente = {
     nombre : req.body.nombre,
-    apellido : req.body.apellido,
     ci : req.body.ci,
     telefono : req.body.telefono,
-    gmail : req.body.gmail
+    email : req.body.email,
+    password : req.body.password
   };
   var clienteData = new Cliente(cliente);
 
@@ -441,6 +414,11 @@ router.post("/cliente", (req, res) => {
 });
 router.get("/cliente", (req, res, next) =>{
   Cliente.find({}).exec((error, docs) => {
+    res.status(200).json(docs);
+  });
+});
+router.get("/restaurant", (req, res, next) =>{
+  Restaurant.find({}).exec((error, docs) => {
     res.status(200).json(docs);
   });
 });

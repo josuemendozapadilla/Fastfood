@@ -1,27 +1,27 @@
 const mongoose = require("../connect");
-//var ObjectId = mongoose.Schema.Types.ObjectId;
-//var Schema = mon.Schema;
+var ObjectId = mongoose.Schema.Types.ObjectId;
 const Schema = mongoose.Schema;
+
 const ordenSchema = new Schema({
 
   //Idmenus : {type: Schema.ObjectId, ref: "menus"},
   //Idrestaurant: {type: Schema.ObjectId, ref: "restaurant"},
   //Idcliente : {type: Schema.ObjectId, ref: "cliente"},
-Cliente: {
+cliente: {
   type: Schema.Types.ObjectId,
   ref: "Users"
 },
-  Lugar_Envio: [Number],
-  Restaurant:{
+  lugar_envio: [Number],
+  restaurant:{
     type: Schema.Types.ObjectId,
     ref: "Restaurant"
   },
-  Menus : [{
+  menus : [{
     type: Schema.Types.ObjectId,
     ref: "Menus"
   }],
-  Precios : Number,
-  Cantidad : [Number],
+  precios : Number,
+  cantidad : [Number],
   Fecha_Registro:
     {
       type:Date,
@@ -29,7 +29,7 @@ Cliente: {
 
     },
 
-Pago_Total : Number,
+pago_total : Number,
 });
 const orden = mongoose.model("Orden", ordenSchema);
 module.exports = orden;

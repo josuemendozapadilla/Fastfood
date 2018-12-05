@@ -7,5 +7,5 @@ var imgSchema = new Schema({
   physicalpath : String,
   relativepath : String
 });
-var img = mongoose.model("img", imgSchema);
+var img = mongoose.model("Img", imgSchema);
 module.exports = img;
