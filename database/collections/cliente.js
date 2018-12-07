@@ -11,6 +11,7 @@ var clienteSchema = new Schema({
       type: Date,
       default: Date.now()
   },
+  tipo : String
 });
-var cliente = mongoose.model("cliente", clienteSchema);
+var cliente = mongoose.model("Cliente", clienteSchema);
 module.exports = cliente;

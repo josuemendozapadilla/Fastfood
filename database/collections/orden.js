@@ -2,7 +2,7 @@ const mongoose = require("../connect");
 //var ObjectId = mongoose.Schema.Types.ObjectId;
 const Schema = mongoose.Schema;
 
-const ordenSchema = new Schema({
+var ordenSchema = new Schema({
 
   //Idmenus : {type: Schema.ObjectId, ref: "menus"},
   //Idrestaurant: {type: Schema.ObjectId, ref: "restaurant"},
@@ -32,5 +32,5 @@ cliente: {
 
 pago_total : Number,
 });
-const orden = mongoose.model("Orden", ordenSchema);
+var orden = mongoose.model("Orden", ordenSchema);
 module.exports = orden;

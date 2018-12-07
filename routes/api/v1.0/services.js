@@ -6,7 +6,7 @@ var _ = require("underscore");
 
 var Img = require("../../../database/collections/img");
 var Menus = require("../../../database/collections/../../database/collections/menus");
-const Orden = require("../../../database/collections/../../database/collections/orden");
+var Orden = require("../../../database/collections/../../database/collections/orden");
 var Restaurant = require("../../../database/collections/../../database/collections/restaurant");
 var Cliente = require("../../../database/collections/../../database/collections/cliente");
 var Users = require("../../../database/collections/../../database/collections/users");
@@ -38,18 +38,21 @@ router.post("/login", (req, res, next) => {
       });
       return;
     }
+    console.log(doc);
     if (doc) {
+       console.log(result);
       //res.status(200).json(doc);
       jwt.sign({name: doc.email, password: doc.password}, "secretkey123", (err, token) => {
-          console.log(err);
+          console.log(result);
           res.status(200).json({
             resp:200,
             token : token,
-            dato:result
+            dato:doc
           });
       })
     } else {
-      res.status(200).json({
+      res.status(400).json({
+        resp: 400,
         msn : "El usuario no existe ne la base de datos"
       });
     }
@@ -270,7 +273,8 @@ router.put(/restaurant\/[a-z0-9]{1,}$/, (req, res) => {
   });
 });
 /*RESTAURANT*/
-router.post("/menus", verifytoken, (req, res) => {
+
+router.post("/menus", (req, res) => {
 
   //Ejemplo de validacion
   var data = req.body;
@@ -285,7 +289,6 @@ router.post("/menus", verifytoken, (req, res) => {
     });
   });
 });
-
 router.get("/menus",(req, res) => {
   var skip = 0;
   var limit = 10;
@@ -401,38 +404,23 @@ router.put(/menus\/[a-z0-9]{1,}$/, (req, res) => {
   });
 });
 
-router.post("/cliente", (req, res) => {
-  //Ejemplo de validacion
-  if (req.body.nombre == "" && req.body.ci == "") {
-    res.status(400).json({
-      "msn" : "Formato incorrecto"
-    });
-    return;
-  }
-  var cliente = {
-    nombre : req.body.nombre,
-    ci : req.body.ci,
-    telefono : req.body.telefono,
-    email : req.body.email,
-    password : req.body.password
-  };
-  var clienteData = new Cliente(cliente);
+router.post("/cliente",  (req, res) => {
 
-  clienteData.save().then( (rr) => {
-    //content-type
+  //Ejemplo de validacion
+  var data = req.body;
+  data ["registerdate"] = new Date();
+  var newcliente = new Cliente(data);
+  newcliente.save().then((rr) =>{
     res.status(200).json({
-      "id" : rr._id,
-      "msn" : "Mostrando menus con exito "
+      "resp": 200,
+      "dato": newcliente,
+      "msn" :  "cliente  agregado con exito"
     });
   });
 });
+
 router.get("/cliente", (req, res, next) =>{
   Cliente.find({}).exec((error, docs) => {
-    res.status(200).json(docs);
-  });
-});
-router.get("/restaurant", (req, res, next) =>{
-  Restaurant.find({}).exec((error, docs) => {
     res.status(200).json(docs);
   });
 });
@@ -452,7 +440,7 @@ router.get(/cliente\/[a-z0-9]{1,}$/, (req, res) => {
   })
 });
 
-//elimina un restaurant
+//elimina un cliente
 router.delete(/cliente\/[a-z0-9]{1,}$/, (req, res) => {
   var url = req.url;
   var id = url.split("/")[2];
@@ -481,12 +469,12 @@ router.patch(/cliente\/[a-z0-9]{1,}$/, (req, res) => {
       return;
   });
 });
-//Actualiza los datos del restaurant
+//Actualiza los datos del cliente
 router.put(/cliente\/[a-z0-9]{1,}$/, (req, res) => {
   var url = req.url;
   var id = url.split("/")[2];
   var keys  = Object.keys(req.body);
-  var oficialkeys = ['nombre', 'apellido', 'ci', 'telefono', 'gmail'];
+  var oficialkeys = ['nombre', 'ci', 'telefono', 'email',];
   var result = _.difference(oficialkeys, keys);
   if (result.length > 0) {
     res.status(400).json({
@@ -499,7 +487,7 @@ router.put(/cliente\/[a-z0-9]{1,}$/, (req, res) => {
     ci : req.body.ci,
     telefono : req.body.telefono,
     email : req.body.email,
-    password : req.body.password
+
   };
   Cliente.findOneAndUpdate({_id: id}, cliente, (err, params) => {
       if(err) {
@@ -512,16 +500,18 @@ router.put(/cliente\/[a-z0-9]{1,}$/, (req, res) => {
       return;
   });
 });
+
+//insertar datos de orden
 router.post('/orden', function (req, res, next) {
 const datos = {
         cliente: req.body.cliente,
         restaurant: req.body.restaurant,
-        menus: req.body.Menus,
+        menus: req.body.menus,
         lugar_envio: req.body.lugar_envio,
     };
 
-    let precios = req.body.Precios;
-    let cantidad = req.body.Cantidad;
+    let precios = req.body.precios;
+    let cantidad = req.body.cantidad;
     let pagoTotal = 0;
 
     if (Array.isArray(cantidad) && Array.isArray(precios)) {
@@ -534,7 +524,7 @@ const datos = {
     }
     //console.log(precios);
     datos.cantidad = cantidad;
-    datos.pago_=total = pago_total;
+    datos.pago_total = pago_total;
     //console.log(pagoTotal);
 
     var modelOrden = new Orden(datos);
@@ -551,7 +541,7 @@ const datos = {
 
 });
 router.get("/orden", (req, res, next) =>{
-  Orden.find({}).exec((error, docs) => {
+  Orden.find({}).populate("menus").populate("cliente").populate("restaurant").exec((error, docs) => {
     res.status(200).json(docs);
   });
 });
@@ -578,7 +568,7 @@ router.get(/orden\/[a-z0-9]{1,}$/, (req, res) => {
     });
   })
 });
-//elimina un restaurant
+//elimina una orden
 router.delete(/orden\/[a-z0-9]{1,}$/, (req, res) => {
   var url = req.url;
   var id = url.split("/")[2];
@@ -607,7 +597,7 @@ router.patch(/orden\/[a-z0-9]{1,}$/, (req, res) => {
       return;
   });
 });
-//Actualiza los datos del restaurant
+//Actualiza los datos dela ordem
 router.put(/orden\/[a-z0-9]{1,}$/, (req, res) => {
   var url = req.url;
   var id = url.split("/")[2];
@@ -622,12 +612,12 @@ router.put(/orden\/[a-z0-9]{1,}$/, (req, res) => {
   }
 
   var orden = {
-    idmenu : req.body.idmenu,
-    idrestaurant : req.body.idrestaurant,
+    menu : req.body.idmenu,
+    restaurant : req.body.idrestaurant,
+    cliente : req.body.idcliente,
+    lugar_envio : req.body.lugar_envio,
     cantidad : req.body.cantidad,
-    idcliente : req.body.idcliente,
-    lat : req.body.lat,
-    lon : req.body.lon,
+    precio : req.body.precio,
     pagototal : req.body.pagototal
   };
   Orden.findOneAndUpdate({_id: id}, orden, (err, params) => {
@@ -755,20 +745,11 @@ router.put(/users\/[a-z0-9]{1,}$/, (req, res) => {
 
 
 
-/*const PDFDocument = require('pdfkit');
-const fs = require('fs');
+const PDFDocument = require('pdfkit');
+//const fs = require('fs');
+var nodemailer = require('nodemailer'); // email sender function
 router.get('/facturas/:id', function (req, res, next) {
 
-    /*var html = '<div id="pageHeader">Default header</div>'+
-    '<div id="pageHeader-first">Header on first page</div>'+
-    '<div id="pageHeader-2">Header on second page</div>'+
-    '<div id="pageHeader-3">Header on third page</div>'+
-    '<div id="pageHeader-last">Header on last page</div>'+
-
-    var footer = '<div id="pageFooter">Default footer</div>'+
-    '<div id="pageFooter-first">Footer on first page</div>'+
-    '<div id="pageFooter-2">Footer on second page</div>'+
-    '<div id="pageFooter-last">Footer on last page</div>'
 
     Orden.findById(req.params.id).populate('restaurant').populate('menus').populate('cliente').exec()
         .then(doc => {
@@ -777,24 +758,20 @@ router.get('/facturas/:id', function (req, res, next) {
 
             pdf = new PDFDocument
 
-            let idOrden = req.params.id
-            pdf.pipe(fs.createWriteStream(idOrden + '.pdf'));
-
-
-
+            let idOrden = req.params.id;
+            let writeStream = fs.createWriteStream(idOrden + '.pdf');
+            pdf.pipe(writeStream);
             // Add another page
-            pdf.addPage()
-                .fontSize(25)
-                .text('Id de Factura : ' + idOrden, 100, 100)
 
+            pdf
+                .fontSize(20)
+                .text('Id de Factura : ' + idOrden, 100, 100)
                 .moveDown()
-            pdf.text('Nombre o Razon Social ' + doc.cliente.nombre, {
+
+            pdf.fontSize(12).text('Nombre o Razon Social ' + doc.cliente.nombre, {
                 width: 412,
                 align: 'left'
             })
-
-
-
             pdf.moveDown()
             pdf.text('Correo electronico : ' + doc.cliente.email, {
                 width: 412,
@@ -806,15 +783,16 @@ router.get('/facturas/:id', function (req, res, next) {
                 align: 'left'
             })
             pdf.moveDown()
-            pdf.text('Telefono :  ' + doc.cliente.nombre, {
+            //pdf.rect(pdf.x, 0, 410, pdf.y).stroke()
+
+
+            pdf.text('telefono :  ' + doc.cliente.nombre, {
                 width: 412,
                 align: 'left'
             })
             pdf.moveDown()
 
-
-
-            pdf.text('DETALLE DE PEDIDO' + doc.cliente.nombre, {
+            pdf.text('DETALLE DE PEDIDO', {
                 width: 412,
                 align: 'center'
             })
@@ -824,47 +802,58 @@ router.get('/facturas/:id', function (req, res, next) {
                 align: 'left'
             })
             pdf.moveDown()
-            pdf.text('NIT : ' + doc.restaurant.nit, {
+            pdf.text('nit : ' + doc.restaurant.nit, {
                 width: 412,
                 align: 'left'
             })
             pdf.moveDown()
-            pdf.text('Direccion : ' + doc.restaurant.calle, {
+            pdf.text('direccion : ' + doc.restaurant.calle, {
                 width: 412,
                 align: 'left'
             })
             pdf.moveDown()
-            pdf.text('Telefono : ' + doc.restaurant.telefono, {
+            pdf.text('telefono : ' + doc.restaurant.telefono, {
                 width: 412,
                 align: 'left'
+            })
+            pdf.moveDown()
+            //image
+             pdf.image('out2.png', pdf.x, pdf.y, {
+                width: 300
             })
 
-
-            pdf.moveDown()
-            pdf.text('Nombre ----------- Precio ', {
+            pdf.text('nombre \n precio \n cantidad', {
                 width: 412,
+                height: 15,
+                columns: 3,
                 align: 'left'
             })
+            pdf.moveTo(95, pdf.y)
+                .lineTo(510, pdf.y).stroke()
+
             pdf.moveDown()
+            console.log(pdf.x, pdf.y);
+            pdf.rect(pdf.x - 5, pdf.y, 410, doc.menus.length * 20).stroke()
 
             for (let index = 0; index < doc.menus.length; index++) {
-
-                pdf.text(doc.menus[index].nombre + '-------' + doc.menus[index].precio + '------- ' + doc.cantidad[index], {
+                //pdf.rect(pdf.x, pdf.y, 410, 15).stroke()
+                pdf.text(doc.menus[index].nombre + '\n' + doc.menus[index].precio + '\n' + doc.cantidad[index], {
                     width: 412,
-                    align: 'left'
+                    align: 'left',
+                    height: 15,
+                    columns: 3
                 })
                 pdf.moveDown()
             }
-
-            pdf.text('Total :  ' + doc.pagoTotal, {
+            pdf.text('total :  ' + doc.pago_total, {
                 width: 412,
-                align: 'center'
+                align: 'right'
             })
             pdf.moveDown()
 
 
 
-            pdf.text('Fecha de venta : ' + doc.fechaRegistro.toString(), {
+            pdf.text('Fecha de venta : ' + doc.Fecha_Registro.toString(), {
                 width: 412,
                 align: 'center'
             })
@@ -879,18 +868,131 @@ router.get('/facturas/:id', function (req, res, next) {
 
             //pdf.pipe(res.status(201));
 
-            res.status(500).json(doc);
+            //res.status(500).json();
 
             //enviar el pdf al correo del cliente .
+
+            //let config = JSON.parse(fs.readFileSync("config.json"))
+            //console.log(config.password);
+
+            var transporter = nodemailer.createTransport({
+                service: 'gmail',
+                secure: false,
+                port: 25,
+                auth: {
+
+                    user: 'padillajosuemendoza8540940@gmail.com', //su correo ,del que se enviara el email
+                    pass: 'p@dillaS123' //aqui va la contraseña de su correo
+
+                },
+                tls: {
+                    rejectUnauthorized: false
+                }
+            });
+            var mailOptions = {
+                from: 'Api Rest Store!',
+                to: 'padillajosuemendoza8540940@gmail.com',
+                subject: 'Factura por servicio',
+                text: 'Adjuntamos la factura por servicio de comidas',
+                attachments: [{
+                    path: "./" + idOrden + ".pdf"
+                }]
+            };
+
+            writeStream.on('finish', function () {
+                transporter.sendMail(mailOptions, function (error, info) {
+                    if (error) {
+                        console.log(error);
+                        res.status(500).json({
+                            error: error
+                        });
+                    } else {
+
+
+                        pdf = new PDFDocument;
+                        let writeStreamG = fs.createWriteStream(idOrden + '.pdf');
+                        pdfg.pipe(writeStreamG);
+
+                        pdfg.fontSize(20)
+                            .text('Id de  : ' + idOrden, 100, 100)
+                            .moveDown()
+
+                        pdfg.fontSize(12).text('Nombre o Razon Social ' + doc.cliente.nombre, {
+                            width: 412,
+                            align: 'left'
+                        })
+                        pdfg.image('out2.png', pdfg.x, pdfg.y, {
+                            width: 300
+                        })
+                        pdfg.end()
+
+                        writeStreamG.on('finish', function () {
+                            res.status(200).download('./' + idOrden + '.pdf');
+                        });
+                        console.log('done...!');
+
+                    }
+                });
+
+            });
+
         }).catch(err => {
             res.status(500).json({
-                error: err
+                error: err || "error"
             });
         });
 
 
     //doc.pipe(res.status(201));
-})
+});
 
-*/
+
+/*const staticmap = require("staticmap");
+
+router.get('/maps', function (req, res, next) {
+
+
+    /*staticmap.getMap(staticmap.png({
+            width: 500,
+            height: 500
+        }), 45.4724, -73.4520, 12)
+        .then((image) => {
+            image.save('out1.png');
+        })
+        .catch((err) => {
+            console.log(err);
+        });
+
+    staticmap.getBox(staticmap.png({
+            width: 500,
+            height: 500
+        }), 48.436034, 10.684891, 48.295985, 11.042633)
+        .then((image) => {
+            image.save('out2.png');
+        })
+        .catch((err) => {
+            console.log(err);
+        });*/
+
+    /*staticmap.getMap(staticmap.png({
+            width: 700,
+            height: 700,
+        }), -19.56604, -65.76899, 17)
+        .then((image) => {
+            //drawLine(x1, y1, x2, y2, color)
+            image.drawLine(340, 340, 360, 340, "#ffffff");
+            image.drawLine(340, 360, 360, 360, "#ffffff");
+            image.drawLine(340, 340, 340, 360, "#ffffff");
+            image.drawLine(360, 340, 360, 360, "#ffffff");
+            image.drawLine(340, 340, 360, 360, "#ffffff");
+            image.drawLine(360, 340, 340, 360, "#ffffff");
+            image.drawLine(0, 30, 350, 360, "#ffffff");
+
+            image.save('out2.png');
+        })
+        .catch((err) => {
+            console.log(err);
+        });
+});*/
+
 module.exports = router;
