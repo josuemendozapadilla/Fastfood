@@ -1,5 +1,5 @@
 var express = require('express');
-var multer = require('multer');
+const multer = require('multer');
 var router = express.Router();
 var fs = require('fs');
 var _ = require("underscore");
@@ -15,17 +15,36 @@ var Pedidos = require("../../../database/collections/../../database/collections/
 var jwt = require("jsonwebtoken");
 
 
-var storage = multer.diskStorage({
-  destination: "./public/avatars",
-  filename: function (req, file, cb) {
-   
-    console.log(file);
-    cb(null, "IMG_" + Date.now() + ".jpg");
+const storage = multer.diskStorage({
+  destination: function (res, file, cb) {
+      try {
+          fs.statSync('./public/avatars');
+      } catch (e) {
+          fs.mkdirSync('./public/avatars');
+      }
+
+      cb(null, './public/avatars');
+  },
+  filename: (res, file, cb) => {
+
+      cb(null, 'IMG-' + Date.now() + path.extname(file.originalname))
   }
-});
-var upload = multer({
-  storage: storage
-}).single("img");;
+})
+
+const fileFilter = (req, file, cb) => {
+  if (file.mimetype === 'image/png' || file.mimetype === 'image/jpeg') {
+      return cb(null, true);
+  }
+  return cb(new Error('Solo se admiten imagenes png y jpg jpeg'));
+}
+
+const upload = multer({
+  storage: storage,
+  //fileFilter: fileFilter,
+  /*limits: {
+      fileSize: 1024 * 1024 * 5
+  }*/
+})
 
 /*
 Login USER
@@ -83,7 +102,7 @@ function verifytoken (req, res, next) {
 }
 //CRUD Create, Read, Update, Delete
 //Creation of users
-router.post(/restaurantimg\/[a-z0-9]{1,}$/, (req, res) => {
+/*router.post(/restaurantimg\/[a-z0-9]{1,}$/, (req, res) => {
   var url = req.url;
   var id = url.split("/")[2];
   upload(req, res, (err) => {
@@ -157,7 +176,7 @@ router.get(/restaurantimg\/[a-z0-9]{1,}$/, (req, res) => {
 });
 
 /*RESTAURANT*/
-router.post("/restaurant", verifytoken,(req, res) => {
+router.post("/restaurant", (req, res) => {
 
   //Ejemplo de validacion
   var data = req.body;
@@ -172,7 +191,7 @@ router.post("/restaurant", verifytoken,(req, res) => {
     });
   });
 });
-router.get("/restaurant", verifytoken, (req, res) => {
+router.get("/restaurant",  (req, res) => {
   var skip = 0;
   var limit = 10;
   if (req.query.skip != null) {
@@ -259,7 +278,7 @@ router.put(/restaurant\/[a-z0-9]{1,}$/, verifytoken,(req, res) => {
     propiedad : req.body.Propiedad,
     calle : req.body.Calle,
     telefono : req.body.Telefono,
-    lat : req.body.Lat,
+    lat : req.body.Lat, 
     lon : req.body.Lon
 
   };
@@ -270,7 +289,11 @@ router.put(/restaurant\/[a-z0-9]{1,}$/, verifytoken,(req, res) => {
         });
         return;
       }
-      res.status(200).json(params);
+      res.status(200).json({
+        "resp": 200,
+        "dato": cliente,
+        "msn" :  "cliente  editado con exito"
+      });
       return;
   });
 });
