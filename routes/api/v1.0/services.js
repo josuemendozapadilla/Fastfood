@@ -157,7 +157,7 @@ router.get(/restaurantimg\/[a-z0-9]{1,}$/, (req, res) => {
 });
 
 /*RESTAURANT*/
-router.post("/restaurant", (req, res) => {
+router.post("/restaurant", verifytoken,(req, res) => {
 
   //Ejemplo de validacion
   var data = req.body;
@@ -172,7 +172,7 @@ router.post("/restaurant", (req, res) => {
     });
   });
 });
-router.get("/restaurant",(req, res) => {
+router.get("/restaurant", verifytoken, (req, res) => {
   var skip = 0;
   var limit = 10;
   if (req.query.skip != null) {
@@ -196,7 +196,7 @@ router.get("/restaurant",(req, res) => {
 
 
 //mostrar  por id los restaurant
-router.get(/restaurant\/[a-z0-9]{1,}$/, (req, res) => {
+router.get(/restaurant\/[a-z0-9]{1,}$/,verifytoken, (req, res) => {
   var url = req.url;
   var id = url.split("/")[2];
   Restaurant.findOne({_id : id}).exec( (error, docs) => {
@@ -240,7 +240,7 @@ router.patch(/restaurant\/[a-z0-9]{1,}$/, (req, res) => {
   });
 });
 //Actualiza los datos del restaurant
-router.put(/restaurant\/[a-z0-9]{1,}$/, (req, res) => {
+router.put(/restaurant\/[a-z0-9]{1,}$/, verifytoken,(req, res) => {
   var url = req.url;
   var id = url.split("/")[2];
   var keys  = Object.keys(req.body);
