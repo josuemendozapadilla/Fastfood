@@ -157,7 +157,7 @@ router.get(/restaurantimg\/[a-z0-9]{1,}$/, (req, res) => {
 });
 
 /*RESTAURANT*/
-router.post("/restaurant", verifytoken, (req, res) => {
+router.post("/restaurant", (req, res) => {
 
   //Ejemplo de validacion
   var data = req.body;
@@ -308,7 +308,9 @@ router.get("/menus",(req, res) => {
       });
       return;
     }
-    res.status(200).json(docs);
+    res.json({
+      result : docs
+    });
   });
 });
 
@@ -333,7 +335,9 @@ router.delete(/menus\/[a-z0-9]{1,}$/, (req, res) => {
   var url = req.url;
   var id = url.split("/")[2];
   Menus.find({_id : id}).remove().exec( (err, docs) => {
-      res.status(200).json(docs);
+    res.json({
+        message: "Menu eliminado"
+        });
   });
 });
 //Actualizar solo x elementos
@@ -446,19 +450,24 @@ router.get(/cliente\/[a-z0-9]{1,}$/, (req, res) => {
 router.delete(/cliente\/[a-z0-9]{1,}$/, (req, res) => {
   var url = req.url;
   var id = url.split("/")[2];
-  cliente.find({_id : id}).remove().exec( (err, docs) => {
-      res.status(200).json(docs);
+  Cliente.find({_id : id}).remove().exec( (err, docs) => {
+    res.json({
+        message: "cliente eliminado"
+        });
   });
 });
 //Actualizar solo x elementos
 router.patch(/cliente\/[a-z0-9]{1,}$/, (req, res) => {
   var url = req.url;
-  var id = url.split( "/")[2];
+  var id = url.split( "/")[4];
   var keys = Object.keys(req.body);
-  var cliente = {};
-  for (var i = 0; i < keys.length; i++) {
-    cliente[keys[i]] = req.body[keys[i]];
-  }
+  var cliente = {
+    nombre : req.body.nombre,
+    ci : req.body.ci,
+    telefono : req.body.telefono,
+    email : req.body.email,
+
+  };
   console.log(cliente);
   Cliente.findOneAndUpdate({_id: id}, cliente, (err, params) => {
       if(err) {
@@ -467,7 +476,11 @@ router.patch(/cliente\/[a-z0-9]{1,}$/, (req, res) => {
         });
         return;
       }
-      res.status(200).json(params);
+      res.status(200).json({
+        "resp": 200,
+        "dato": cliente,
+        "msn" :  "cliente  editado con exito"
+      });
       return;
   });
 });
@@ -481,7 +494,7 @@ router.put(/cliente\/[a-z0-9]{1,}$/, (req, res) => {
   if (result.length > 0) {
     res.status(400).json({
       "msn" : "erorr no se puede actualizar intenten con patch"
-    });
+    });fmulter
     return;
   }
   var cliente = {
@@ -498,7 +511,11 @@ router.put(/cliente\/[a-z0-9]{1,}$/, (req, res) => {
         });
         return;
       }
-      res.status(200).json(params);
+      res.status(200).json({
+        "resp": 200,
+        "dato": cliente,
+        "msn" :  "cliente  editado con exito"
+      });
       return;
   });
 });
