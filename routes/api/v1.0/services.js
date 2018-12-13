@@ -11,7 +11,8 @@ var Orden = require("../../../database/collections/../../database/collections/or
 var Restaurant = require("../../../database/collections/../../database/collections/restaurant");
 var Cliente = require("../../../database/collections/../../database/collections/cliente");
 var Users = require("../../../database/collections/../../database/collections/users");
-var Pedidos = require("../../../database/collections/../../database/collections/pedidos");
+var Detalle = require("../../../database/collections/../../database/collections/detalle");
+
 var jwt = require("jsonwebtoken");
 
 
@@ -102,7 +103,7 @@ function verifytoken (req, res, next) {
 }
 //CRUD Create, Read, Update, Delete
 //Creation of users
-/*router.post(/restaurantimg\/[a-z0-9]{1,}$/, (req, res) => {
+router.post(/restaurantimg\/[a-z0-9]{1,}$/, (req, res) => {
   var url = req.url;
   var id = url.split("/")[2];
   upload(req, res, (err) => {
@@ -193,7 +194,7 @@ router.post("/restaurant", (req, res) => {
 });
 router.get("/restaurant",  (req, res) => {
   var skip = 0;
-  var limit = 10;
+  var limit = "";
   if (req.query.skip != null) {
     skip = req.query.skip;
   }
@@ -206,16 +207,19 @@ router.get("/restaurant",  (req, res) => {
       res.status(500).json({
         "msn" : "Error en la db"
       });
+      
       return;
     }
-    res.status(200).json(docs);
+    res.json({
+      result : docs
+    });
   });
 });
 
 
 
 //mostrar  por id los restaurant
-router.get(/restaurant\/[a-z0-9]{1,}$/,verifytoken, (req, res) => {
+router.get(/restaurant\/[a-z0-9]{1,}$/, (req, res) => {
   var url = req.url;
   var id = url.split("/")[2];
   Restaurant.findOne({_id : id}).exec( (error, docs) => {
@@ -224,18 +228,36 @@ router.get(/restaurant\/[a-z0-9]{1,}$/,verifytoken, (req, res) => {
         return;
     }
 
-    res.status(200).json({
-      "msn" : "No existe el pedido "
+  res.json({
+    result : docs
+  
     });
   })
 });
 //elimina un restaurant
-router.delete(/restaurant\/[a-z0-9]{1,}$/, verifytoken, (req, res) => {
+/*router.delete(/restaurant\/[a-z0-9]{1,}$/, verifytoken, (req, res) => {
   var url = req.url;
   var id = url.split("/")[2];
   Restaurant.find({_id : id}).remove().exec( (err, docs) => {
       res.status(200).json(docs);
   });
+});*/
+router.delete('/restaurant/:id',  (req, res, )=> {
+  var idRestaurant = req.params.id;
+
+  Restaurant.findByIdAndRemove(idRestaurant).exec()
+      .then(() => {
+        res.status(200).json({
+          "resp": 200,
+          "msn" :  "eliminado con exito"
+        });
+      }).catch(err => {
+          res.status(500).json({
+              error: err
+          });
+      });
+
+
 });
 //Actualizar solo x elementos
 router.patch(/restaurant\/[a-z0-9]{1,}$/, (req, res) => {
@@ -291,8 +313,8 @@ router.put(/restaurant\/[a-z0-9]{1,}$/, verifytoken,(req, res) => {
       }
       res.status(200).json({
         "resp": 200,
-        "dato": cliente,
-        "msn" :  "cliente  editado con exito"
+        "dato": restaurant,
+        "msn" :  "restaurant editado con exito"
       });
       return;
   });
@@ -353,8 +375,28 @@ router.get(/menus\/[a-z0-9]{1,}$/, (req, res) => {
   })
 });
 
+router.delete('/menus/:id', (req, res,) => {
+  var idMenus = req.params.id;
+
+  Menus.findByIdAndRemove(idMenus).exec()
+      .then(() => {
+         
+      res.status(200).json({
+        "resp": 200,
+        "msn" :  "eliminado con exito"
+      });
+      }).catch(err => {
+          res.status(500).json({
+              error: err
+         
+            });
+
+      });
+
+
+});
 //elimina un restaurant
-router.delete(/menus\/[a-z0-9]{1,}$/, (req, res) => {
+/*router.delete(/menus\/[a-z0-9]{1,}$/, (req, res) => {
   var url = req.url;
   var id = url.split("/")[2];
   Menus.find({_id : id}).remove().exec( (err, docs) => {
@@ -362,7 +404,7 @@ router.delete(/menus\/[a-z0-9]{1,}$/, (req, res) => {
         message: "Menu eliminado"
         });
   });
-});
+});*/
 //Actualizar solo x elementos
 
 router.patch("/menus",(req, res) => {
@@ -393,10 +435,13 @@ router.patch("/menus",(req, res) => {
       });
       return;
     }
-    var id = docs._id
     res.status(200).json({
-      msn: id
-    })
+      "resp": 200,
+      "dato": menus,
+      "msn" :  "Menus  editado con exito"
+    });
+    return;
+    
   });
 });
 //Actualiza los datos del restaurant
@@ -428,14 +473,18 @@ router.put(/menus\/[a-z0-9]{1,}$/, (req, res) => {
         });
         return;
       }
-      res.status(200).json(params);
+      res.status(200).json({
+        "resp": 200,
+        "dato": menus,
+        "msn" :  "menus  editado con exito"
+      });
       return;
   });
 });
 
 router.post("/cliente",  (req, res) => {
 
-  //Ejemplo de validacion
+  
   var data = req.body;
   data ["registerdate"] = new Date();
   var newcliente = new Cliente(data);
@@ -447,12 +496,37 @@ router.post("/cliente",  (req, res) => {
     });
   });
 });
+router.get("/cliente",(req, res) => {
+  var skip = 0;
+  var limit = 10;
+  if (req.query.skip != null) {
+    skip = req.query.skip;
+  }
 
-router.get("/cliente", (req, res, next) =>{
-  Cliente.find({}).exec((error, docs) => {
-    res.status(200).json(docs);
+  if (req.query.limit != null) {
+    limit = req.query.limit;
+  }
+  Cliente.find({}).skip(skip).limit(limit).exec((err, docs) => {
+    if (err) {
+      res.status(500).json({
+        "msn" : "Error en la db"
+      });
+      return;
+    }
+    res.json({
+      result : docs
+    });
   });
 });
+
+/*router.get("/cliente", (req, res, ) =>{
+  Cliente.find({}).exec((error, docs) => {
+    
+    res.status(200).json({
+      "msn" : "No existe el pedido "
+    });
+  });
+});*/
 
 router.get(/cliente\/[a-z0-9]{1,}$/, (req, res) => {
   var url = req.url;
@@ -544,43 +618,19 @@ router.put(/cliente\/[a-z0-9]{1,}$/, (req, res) => {
 });
 
 //insertar datos de orden
-router.post('/orden', function (req, res, next) {
-const datos = {
-        cliente: req.body.cliente,
-        restaurant: req.body.restaurant,
-        menus: req.body.menus,
-        lugar_envio: req.body.lugar_envio,
-    };
+router.post("/orden",  (req, res) => {
 
-    let precios = req.body.precios;
-    let cantidad = req.body.cantidad;
-    let pagoTotal = 0;
-
-    if (Array.isArray(cantidad) && Array.isArray(precios)) {
-        for (let index = 0; index < precios.length; index++) {
-            pago_total += +precios[index] * +cantidad[index];
-            console.log(cantidad[index]);
-        };
-    } else {
-        pago_total = +cantidad * +precios
-    }
-    //console.log(precios);
-    datos.cantidad = cantidad;
-    datos.pago_total = pago_total;
-    //console.log(pagoTotal);
-
-    var modelOrden = new Orden(datos);
-    modelOrden.save()
-        .then(result => {
-            res.json({
-                message: "Orden insertado en la bd"
-            })
-        }).catch(err => {
-            res.status(500).json({
-                error: err
-            })
-        });
-
+  
+  var data = req.body;
+  data ["registerdate"] = new Date();
+  var neworden = new Orden(data);
+  neworden.save().then((rr) =>{
+    res.status(200).json({
+      "resp": 200,
+      "dato": neworden,
+      "msn" :  "orden  agregado con exito"
+    });
+  });
 });
 router.get("/orden", (req, res, next) =>{
   Orden.find({}).populate("menus").populate("cliente").populate("restaurant").exec((error, docs) => {
@@ -611,12 +661,21 @@ router.get(/orden\/[a-z0-9]{1,}$/, (req, res) => {
   })
 });
 //elimina una orden
-router.delete(/orden\/[a-z0-9]{1,}$/, (req, res) => {
-  var url = req.url;
-  var id = url.split("/")[2];
-  Orden.find({_id : id}).remove().exec( (err, docs) => {
-      res.status(200).json(docs);
-  });
+router.delete('/orden/:id', (req, res,) => {
+  var idOrden = req.params.id;
+
+  Orden.findByIdAndRemove(idOrden).exec()
+      .then(() => {
+          res.json({
+              message: "orden eliminado"
+          });
+      }).catch(err => {
+          res.status(500).json({
+              error: err
+          });
+      });
+
+
 });
 //Actualizar solo x elementos
 router.patch(/orden\/[a-z0-9]{1,}$/, (req, res) => {
@@ -635,7 +694,11 @@ router.patch(/orden\/[a-z0-9]{1,}$/, (req, res) => {
         });
         return;
       }
-      res.status(200).json(params);
+      res.status(200).json({
+        "resp": 200,
+        "dato": orden,
+        "msn" :  "orden  editado con exito"
+      });
       return;
   });
 });
@@ -669,12 +732,16 @@ router.put(/orden\/[a-z0-9]{1,}$/, (req, res) => {
         });
         return;
       }
-      res.status(200).json(params);
+      res.status(200).json({
+        "resp": 200,
+        "dato": orden,
+        "msn" :  "orden  editado con exito"
+      });
       return;
   });
 });
 //insertar un nuevo usuario en la  base de datos
-router.post('/users', function(req, res, next) {//definimos el nombre en plural
+/*router.post('/users', function(req, res, next) {//definimos el nombre en plural
 //el detalles era que no definiste la ruta como tal...osea ya esta ahora  no tengo problkemas para tabajar
 //che man  solucionalo esta lo mismo que  isiste no  hay errror
 //que parte?
@@ -784,7 +851,7 @@ router.put(/users\/[a-z0-9]{1,}$/, (req, res) => {
   });
 });
 
-
+*/
 
 
 const PDFDocument = require('pdfkit');
@@ -1037,13 +1104,13 @@ router.get('/maps', function (req, res, next) {
         });
 });*/
 //insertar datos de] menu
-router.post("/pedidos", verifytoken, (req, res) => {
+router.post("/detalle",  (req, res) => {
 
   //Ejemplo de validacion
   var data = req.body;
   data ["registerdate"] = new Date();
-  var newrestaurant = new Pedidos(data);
-  newpedidos.save().then((rr) =>{
+  var newdetalle = new Detalle(data);
+  newdetalle.save().then((rr) =>{
     res.status(200).json({
       "resp": 200,
       "dato": newrestaurant,
@@ -1069,7 +1136,8 @@ router.get("/pedidos",(req, res) => {
       });
       return;
     }
-    res.status(200).json(docs);
+    res.json({
+      result : docs
   });
 });
 
@@ -1085,18 +1153,26 @@ router.get(/pedidos\/[a-z0-9]{1,}$/, (req, res) => {
         return;
     }
 
-    res.status(200).json({
-      "msn" : "No existe el pedido "
-    });
+    res.json({
+      result : docs    });
   })
 });
 //elimina un restaurant
-router.delete(/pedidos\/[a-z0-9]{1,}$/, (req, res) => {
-  var url = req.url;
-  var id = url.split("/")[2];
-  Pedidos.find({_id : id}).remove().exec( (err, docs) => {
-      res.status(200).json(docs);
-  });
+router.delete('/detalle/:id',  (req, res, )=> {
+  var idDetalle = req.params.id;
+
+  Orden.findByIdAndRemove(idOrden).exec()
+      .then(() => {
+          res.json({
+              message: "Orden eliminado"
+          });
+      }).catch(err => {
+          res.status(500).json({
+              error: err
+          });
+      });
+
+
 });
 //Actualizar solo x elementos
 router.patch(/pedidos\/[a-z0-9]{1,}$/, (req, res) => {
@@ -1115,10 +1191,16 @@ router.patch(/pedidos\/[a-z0-9]{1,}$/, (req, res) => {
         });
         return;
       }
-      res.status(200).json(params);
+      
+      res.status(200).json({
+        "resp": 200,
+        "dato": orden,
+        "msn" :  "orden  editado con exito"
+      });
       return;
+    
+      });
   });
 });
-
 
 module.exports = router;

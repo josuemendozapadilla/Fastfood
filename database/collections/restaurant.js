@@ -2,6 +2,9 @@ const mongoose = require("../connect");
 var mon = require('mongoose');
 var Schema = mon.Schema;
 var restaurantSchema = new Schema({
+  cliente: {
+    type: Schema.Types.ObjectId,
+    ref: "Cliente"},
   nombre : String,
   nit : String,
   propietario : String,
