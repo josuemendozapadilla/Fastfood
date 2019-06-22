@@ -991,7 +991,7 @@ router.get('/facturas/:id', function (req, res, next) {
                 auth: {
 
                     user: 'padillajosuemendoza8540940@gmail.com', //su correo ,del que se enviara el email
-                    pass: 'p@dillaS123' //aqui va la contraseña de su correo
+                    pass: ' //aqui va la contraseña de su correo
 
                 },
                 tls: {
