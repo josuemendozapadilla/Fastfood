@@ -881,10 +881,7 @@ router.get('/facturas/:id', function (req, res, next) {
                 width: 412,
                 align: 'left'
             })
-            pdf.moveDown()
-            pdf.text('Correo electronico : ' + doc.cliente.email, {
-                width: 412,
-                align: 'left'
+            
             })
             pdf.moveDown()
             pdf.text('Cedula de Indentidad ' + doc.cliente.ci, {
